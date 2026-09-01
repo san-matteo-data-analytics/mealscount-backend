@@ -23,11 +23,14 @@ import { optimizeDistrict } from "@/lib/api";
 import { EMPTY_SCHOOL, SAMPLE_SETTINGS } from "@/lib/sample";
 import type { DistrictSettings, OptimizeResponse, SchoolInput } from "@/lib/types";
 
+/** Mirrors EXACT_MAX_SCHOOLS in server.py -- above this, optimality is not proven. */
+const EXACT_MAX_SCHOOLS = 16;
+
 const REFERENCE_LINKS = [
   { href: "/reference/how-it-works", label: "How it works", hint: "Why grouping is worth optimizing" },
   { href: "/reference/inputs", label: "Input reference", hint: "Every field, and the silent failures" },
   { href: "/reference/outputs", label: "Output reference", hint: "How to read the response" },
-  { href: "/reference/strategies", label: "Strategies", hint: "The eight algorithms" },
+  { href: "/reference/strategies", label: "Strategies", hint: "Every algorithm, explained" },
 ];
 
 export default function OptimizerPage() {
@@ -76,7 +79,7 @@ export default function OptimizerPage() {
       <PageHeader
         eyebrow="MealsCount optimizer"
         title="Find the grouping that funds the most meals"
-        lede="Upload your district's schools, set the district options, and the optimizer will try eight ways of grouping them into USDA Community Eligibility Provision groups — then show you the one worth the most, and what each alternative would have earned."
+        lede="Upload your district's schools, set the district options, and the optimizer will search for the best way to group them into USDA Community Eligibility Provision groups — then show you what it recommends, and what every alternative would have earned."
       />
 
       <Box sx={{ mb: 4 }}>
@@ -132,9 +135,9 @@ export default function OptimizerPage() {
                 {activeSchools.length} school{activeSchools.length === 1 ? "" : "s"} will be sent.{" "}
                 {activeSchools.length === 0
                   ? "Every school needs a code and a non-zero enrollment."
-                  : activeSchools.length > 11
-                    ? "Above 11 schools the server also runs simulated annealing and the LP solver — expect several seconds."
-                    : "At this size the exhaustive search runs, so the answer is provably optimal."}
+                  : activeSchools.length <= EXACT_MAX_SCHOOLS
+                    ? "At this size the exact solver runs, so the result comes back proven optimal."
+                    : `Above ${EXACT_MAX_SCHOOLS} schools optimality cannot be proven by search, so the server falls back to simulated annealing and the LP solver — expect several seconds.`}
               </Typography>
             </Box>
             <Button

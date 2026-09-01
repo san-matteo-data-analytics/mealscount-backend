@@ -38,7 +38,7 @@ const REFERENCE = [
   { href: "/reference/how-it-works", label: "How it works", icon: <SchemaIcon />, hint: "Why grouping pays" },
   { href: "/reference/inputs", label: "Inputs", icon: <InputIcon />, hint: "Every field you supply" },
   { href: "/reference/outputs", label: "Outputs", icon: <TableChartIcon />, hint: "Every field you get back" },
-  { href: "/reference/strategies", label: "Strategies", icon: <AltRouteIcon />, hint: "The eight algorithms" },
+  { href: "/reference/strategies", label: "Strategies", icon: <AltRouteIcon />, hint: "Every algorithm, explained" },
 ];
 
 const DRAWER_WIDTH = 268;

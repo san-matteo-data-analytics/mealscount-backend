@@ -17,6 +17,37 @@ from strategies.base import CEPDistrict,CEPSchool,DEFAULT_ISP_THRESHOLD
 from strategies.naive import CustomGroupsCEPStrategy
 from cep_estimatory import parse_strategy,add_strategies
 
+# Largest district the Exact (subset DP) strategy will attempt. 3^n work, so
+# ~4s at 16 schools; raise with care.
+EXACT_MAX_SCHOOLS = int(os.environ.get("EXACT_MAX_SCHOOLS",16))
+
+def default_strategies(school_count,evaluate_by,max_groups):
+    '''The strategy set the API runs when the caller does not specify one.
+
+    Exact replaces Exhaustive wherever it can run: it returns the same
+    provably-optimal grouping, handles districts up to EXACT_MAX_SCHOOLS
+    rather than 10, and is far cheaper.
+    '''
+    # The cheap heuristics always run: they cost milliseconds and give the user
+    # something to compare the recommendation against (OneToOne is the
+    # do-nothing baseline).
+    strategies = ["Pairs","OneToOne","OneGroup","Spread","Binning"]
+
+    if school_count <= EXACT_MAX_SCHOOLS:
+        # Exact proves the optimum, so the expensive metaheuristics below cannot
+        # beat it and are skipped. That makes 12-16 school districts markedly
+        # faster than running NYCMODA + GreedyLP, not slower.
+        strategies.append("Exact?evaluate_by=%s&max_schools=%s&max_groups=%s" % (
+            evaluate_by,EXACT_MAX_SCHOOLS,max_groups))
+        return strategies
+
+    strategies.append("Exhaustive?evaluate_by=%s" % evaluate_by)
+    if school_count > 11:
+        strategies.append(
+            "NYCMODA?fresh_starts=50&iterations=1000&ngroups=%s&evaluate_by=%s" % (max_groups,evaluate_by))
+        strategies.append("GreedyLP")
+    return strategies
+
 # If we have specified AWS keys, this is where we will tell the client where
 # the results will be on S3
 S3_RESULTS_URL = os.environ.get("S3_RESULTS_URL","https://mealscount-results.s3-us-west-1.amazonaws.com")
@@ -88,17 +119,8 @@ def optimize_async():
     evaluate_by = event.get("evaluate_by","reimbursement")
 
     if not event.get("strategies_to_run",False):
-        event["strategies_to_run"] = [
-            "Pairs",
-            "OneToOne",
-            "Exhaustive?evaluate_by=%s" % evaluate_by,
-            "OneGroup",
-            "Spread",
-            "Binning",
-        ] 
-        if len(event["schools"]) > 11:
-            event["strategies_to_run"].append("NYCMODA?fresh_starts=50&iterations=1000&ngroups=%s&evaluate_by=%s" % (max_groups,evaluate_by))
-            event["strategies_to_run"].append("GreedyLP")
+        event["strategies_to_run"] = default_strategies(
+            len(event["schools"]),evaluate_by,max_groups)
 
     # Large school districts (LA) don't fit in our 256kb Event Invocation limit on Lambda,
     # So sneak it in via ZipFile
@@ -176,20 +198,9 @@ def optimize():
     max_groups = d_obj.get("max_groups",10)
     if max_groups != None: max_groups = int(max_groups)
     evaluate_by = d_obj.get("evaluate_by","reimbursement")
-    add_strategies(
-        district,
-        [
-            "Pairs",
-            "OneToOne",
-            "Exhaustive?evaluate_by=%s"%evaluate_by,
-            "OneGroup",
-            "Spread",
-            "Binning",
-            "NYCMODA?fresh_starts=100&iterations=2000&ngroups=%s&evaluate_by=%s"%(max_groups,evaluate_by),
-            "GreedyLP"
-        ],
-        isp_threshold,
-    )
+    strategies_to_run = d_obj.get("strategies_to_run") or default_strategies(
+        len(district.schools),evaluate_by,max_groups)
+    add_strategies(district,strategies_to_run,isp_threshold)
 
     t0 = time.time()
     district.run_strategies()

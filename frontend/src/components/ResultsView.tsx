@@ -5,6 +5,7 @@ import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
@@ -21,6 +22,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import VerifiedIcon from "@mui/icons-material/Verified";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { SERVING_DAYS_PER_YEAR, num, pct, usd } from "@/lib/cep";
@@ -66,7 +68,8 @@ function StatCard({
 
 export default function ResultsView({ result }: { result: OptimizeResponse }) {
   const strategies = result.strategies ?? [];
-  const winner: StrategyOutput | undefined = strategies[result.best_index];
+  const winner: StrategyOutput | undefined =
+    result.best_index == null ? undefined : strategies[result.best_index];
   const baseline = strategies.find((s) => s.name === "OneToOne");
   const reimbursements = strategies.map((s) => s.reimbursement);
   const maxReimbursement = Math.max(...reimbursements, 1);
@@ -87,6 +90,24 @@ export default function ResultsView({ result }: { result: OptimizeResponse }) {
       <Typography variant="h2" gutterBottom>
         Results
       </Typography>
+
+      {result.best_is_optimal ? (
+        <Alert severity="success" icon={<VerifiedIcon />} sx={{ mb: 3 }}>
+          <AlertTitle>This grouping is provably optimal</AlertTitle>
+          No other way of grouping these schools earns more.{" "}
+          {result.optimality_basis ? (
+            <Typography variant="body2" component="span" color="text.secondary">
+              ({result.optimality_basis})
+            </Typography>
+          ) : null}
+        </Alert>
+      ) : (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <AlertTitle>Best result found</AlertTitle>
+          This district is too large to prove optimality by search, so this is the best grouping the
+          strategies found — not a guarantee that nothing beats it.
+        </Alert>
+      )}
 
       <Stack direction="row" flexWrap="wrap" useFlexGap spacing={2} sx={{ mb: 3 }}>
         <StatCard
@@ -239,9 +260,19 @@ export default function ResultsView({ result }: { result: OptimizeResponse }) {
                     <TableCell>
                       <Stack direction="row" spacing={1} alignItems="center">
                         {isWinner && <EmojiEventsIcon fontSize="small" color="primary" />}
+                        {s.optimal && (
+                          <Tooltip title={s.optimality_basis ?? "Proven optimal"} arrow>
+                            <VerifiedIcon fontSize="small" color="success" />
+                          </Tooltip>
+                        )}
                         <Typography variant="body2" sx={{ fontWeight: isWinner ? 700 : 400 }}>
                           {s.name.split("?")[0]}
                         </Typography>
+                        {s.groups.length === 0 && (
+                          <Tooltip title={s.optimality_basis ?? "This strategy did not produce a grouping"} arrow>
+                            <Chip size="small" label="did not run" variant="outlined" />
+                          </Tooltip>
+                        )}
                         {s.groups.length > (result.max_groups ?? 10) && (
                           <Tooltip title="Disqualified: more groups than max_groups allows" arrow>
                             <Chip size="small" label="over cap" variant="outlined" />

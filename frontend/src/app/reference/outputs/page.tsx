@@ -17,9 +17,11 @@ const RESPONSE_EXAMPLE = `{
   "school_count": 8,
 
   // -- The recommendation ------------------------------
-  "best_strategy": "Exhaustive?evaluate_by=reimbursement",
+  "best_strategy": "Exact?evaluate_by=reimbursement&max_schools=16&max_groups=10",
   "est_reimbursement": 14340.41,   // dollars per serving day
-  "best_index": 2,
+  "best_index": 5,
+  "best_is_optimal": true,         // proven, not just best-found
+  "optimality_basis": "proven optimal over all partitions of 8 schools",
 
   // -- Every strategy that ran, winner included --------
   "strategies": [
@@ -30,31 +32,33 @@ const RESPONSE_EXAMPLE = `{
       "groups": [ /* one per school */ ]
     },
     {
-      "name": "Exhaustive?evaluate_by=reimbursement",
+      "name": "Exact?evaluate_by=reimbursement&max_schools=16&max_groups=10",
       "reimbursement": 14340.41,
       "covered_students": 4435,        // now every student is covered
+      "optimal": true,
+      "optimality_basis": "proven optimal over all partitions of 8 schools",
       "groups": [
         {
-          "name": "162",               // strategies name groups inconsistently
-          "school_codes": ["1002", "1005", "1003", "1001", "1004"],
+          "name": "Group 1",
+          "school_codes": ["1001", "1003", "1002", "1005", "1004"],
           "isp": 0.6185,
           "free_rate": 0.9896,         // 0.6185 x 1.6, just short of the cap
           "paid_rate": 0.0104,
           "cep_eligible": true,
           "est_reimbursement": 11481.37,
-          "school_reimbursements": [["1004", 1711.61], ["1001", 2554.6],
-                                    ["1002", 2846.18], ["1003", 1907.75],
+          "school_reimbursements": [["1001", 2554.6], ["1002", 2846.18],
+                                    ["1003", 1907.75], ["1004", 1711.61],
                                     ["1005", 2461.23]]
         },
         {
-          "name": "91",
-          "school_codes": ["1006", "1007", "1008"],
+          "name": "Group 2",
+          "school_codes": ["1008", "1006", "1007"],
           "isp": 0.2997,
           "free_rate": 0.47952,        // above the 25% floor, so partly funded
           "cep_eligible": true,
           "est_reimbursement": 2859.04,
-          "school_reimbursements": [["1008", 149.88], ["1006", 2053.86],
-                                    ["1007", 655.3]]
+          "school_reimbursements": [["1006", 2053.86], ["1007", 655.3],
+                                    ["1008", 149.88]]
         }
       ]
     }
@@ -69,7 +73,7 @@ const RESPONSE_EXAMPLE = `{
                  "free_bfast": 2.73, "paid_bfast": 0.38 } }
   ],
 
-  "optimization_info": { "timestamp": "2026-09-01 14:22:07", "time": 0.69 }
+  "optimization_info": { "timestamp": "2026-09-01 15:41:12", "time": 0.02 }
 }`;
 
 const READING_ORDER = [
@@ -85,8 +89,8 @@ const READING_ORDER = [
   },
   {
     step: "3",
-    title: "Compare against OneToOne",
-    body: "OneToOne is the do-nothing baseline: every school on its own. The gap between it and the winner is the value the optimization created.",
+    title: "Check best_is_optimal, then compare against OneToOne",
+    body: "If best_is_optimal is true the grouping is proven — nothing beats it. OneToOne is the do-nothing baseline: every school on its own. The gap between it and the winner is the value the optimization created.",
   },
   {
     step: "4",
@@ -143,7 +147,7 @@ export default function OutputsPage() {
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 2, maxWidth: 820 }}>
         A real response from the sample district in the downloadable template, abridged (comments added,
-        six of the eight strategies elided). Run it yourself and these are the numbers you get.
+        four of the six strategies elided). Run it yourself and these are the numbers you get.
       </Typography>
       <Box sx={{ mb: 5 }}>
         <CodeBlock caption="POST /api/districts/optimize/ — 200 OK" code={RESPONSE_EXAMPLE} />

@@ -36,7 +36,7 @@ export default function Home() {
       <PageHeader
         eyebrow="How it works"
         title="School data in, a funding-optimal grouping out"
-        lede="MealsCount takes a district's schools, tries eight different ways of grouping them into USDA Community Eligibility Provision groups, and returns the grouping that brings in the most federal meal reimbursement. This page explains what that means end to end."
+        lede="MealsCount takes a district's schools, tries many different ways of grouping them into USDA Community Eligibility Provision groups, and returns the one that brings in the most federal meal reimbursement — proving it optimal where the district is small enough. This page explains what that means end to end."
       />
 
       <PipelineDiagram />

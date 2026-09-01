@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Box from "@mui/material/Box";
 import FormControl from "@mui/material/FormControl";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -12,16 +13,42 @@ import Slider from "@mui/material/Slider";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { pct } from "@/lib/cep";
+import { fetchStates } from "@/lib/api";
+import { pct, rateTier, RATE_TIER_LABEL } from "@/lib/cep";
+import { mergeStates, US_JURISDICTIONS } from "@/lib/states";
+import type { StateOption } from "@/lib/states";
 import type { DistrictSettings, EvaluateBy, HhfkaSixty } from "@/lib/types";
 
-const STATES = [
-  { code: "ca", label: "California" },
-  { code: "ny", label: "New York" },
-  { code: "tx", label: "Texas" },
-  { code: "ak", label: "Alaska (higher rates)" },
-  { code: "hi", label: "Hawaii (higher rates)" },
-];
+/**
+ * The picker starts from the full jurisdiction list so it works before (or
+ * without) the API, then merges in whatever /api/states/ reports so states
+ * added to data/ show up without a frontend change.
+ */
+function useStates(selectedCode: string): StateOption[] {
+  const [live, setLive] = React.useState<StateOption[]>([]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    fetchStates()
+      .then((states) => {
+        if (!cancelled) setLive(states);
+      })
+      .catch(() => {
+        // The baseline list is enough to pick a rate table; no need to nag.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return React.useMemo(() => {
+    const merged = mergeStates(live, US_JURISDICTIONS);
+    // Never let the Select hold a value that is not in its options.
+    return merged.some((s) => s.code === selectedCode)
+      ? merged
+      : mergeStates(merged, [{ code: selectedCode, name: selectedCode.toUpperCase() }]);
+  }, [live, selectedCode]);
+}
 
 export default function SettingsPanel({
   settings,
@@ -32,6 +59,8 @@ export default function SettingsPanel({
 }) {
   const set = <K extends keyof DistrictSettings>(key: K, value: DistrictSettings[K]) =>
     onChange({ ...settings, [key]: value });
+
+  const states = useStates(settings.state_code);
 
   return (
     <Paper variant="outlined" sx={{ p: 2.5 }}>
@@ -70,13 +99,13 @@ export default function SettingsPanel({
             value={settings.state_code}
             onChange={(e) => set("state_code", e.target.value)}
           >
-            {STATES.map((s) => (
+            {states.map((s) => (
               <MenuItem key={s.code} value={s.code}>
-                {s.label}
+                {s.name}
               </MenuItem>
             ))}
           </Select>
-          <FormHelperText>Selects the USDA per-meal rate table.</FormHelperText>
+          <FormHelperText>{RATE_TIER_LABEL[rateTier(settings.state_code)]}</FormHelperText>
         </FormControl>
 
         <FormControl size="small" fullWidth>

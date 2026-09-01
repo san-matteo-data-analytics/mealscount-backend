@@ -27,15 +27,17 @@ export default function StrategiesPage() {
     <Box>
       <PageHeader
         eyebrow="Strategies"
-        title="Eight ways to draw the same district"
-        lede="No single algorithm wins everywhere, so MealsCount runs all of them and keeps the best result. Each one embodies a different guess about where the value hides — and comparing their answers is often more informative than the winner alone."
+        title="Every way it knows to draw a district"
+        lede="For districts up to 16 schools, Exact settles the question outright — it proves which grouping is best, and the heuristics become a way to see how much the optimization is actually worth. Above that size no algorithm wins everywhere, so MealsCount runs several and keeps the best."
       />
 
       <Alert severity="info" sx={{ mb: 4 }}>
         <AlertTitle>How the winner is picked</AlertTitle>
         Every strategy is scored on the same objective (<code>evaluate_by</code>: reimbursement or
         coverage). Any strategy producing more than <code>max_groups</code> groups is disqualified first.
-        The highest remaining score wins and lands in <code>best_strategy</code>.
+        The highest remaining score wins and lands in <code>best_strategy</code>. Ties go to a strategy
+        that can prove optimality, so a proven result is reported as proven — check{" "}
+        <code>best_is_optimal</code> in the response.
       </Alert>
 
       <Stack spacing={2.5} sx={{ mb: 5 }}>

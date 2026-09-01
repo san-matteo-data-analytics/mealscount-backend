@@ -10,8 +10,18 @@ const nextConfig: NextConfig = {
   // trace root so Next does not walk up and treat the repo root as the project.
   outputFileTracingRoot: path.join(__dirname),
 
+  // The Flask routes end in a slash. Without this Next 308-redirects the slash
+  // away, forcing an extra round-trip on every optimize call.
+  skipTrailingSlashRedirect: true,
+
   async rewrites() {
-    return [{ source: "/api/:path*", destination: `${API_ORIGIN}/api/:path*` }];
+    return [
+      // Flask's routes are declared with a trailing slash. ":path*" does not
+      // capture one, so match that form explicitly first -- otherwise Flask
+      // 308s to an absolute internal URL and the proxy is bypassed.
+      { source: "/api/:path*/", destination: `${API_ORIGIN}/api/:path*/` },
+      { source: "/api/:path*", destination: `${API_ORIGIN}/api/:path*` },
+    ];
   },
 };
 

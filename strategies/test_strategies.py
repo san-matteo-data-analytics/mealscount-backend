@@ -1,6 +1,8 @@
 from . import STRATEGIES
 import unittest
+import random
 from .base import CEPDistrict,CEPSchool,CEPGroup,CEPRate
+from cep_estimatory import parse_strategy
 
 SCHOOL_DATA_COLS = ["District Code","School Name","School Code",\
                     "foster","homeless","migrant","direct_cert",\
@@ -134,3 +136,76 @@ class StrategyTestCase(unittest.TestCase,CEPTestMixin):
 
             # TODO how does a strategy define its expected result?
 
+
+
+class ExactStrategyTestCase(unittest.TestCase,CEPTestMixin):
+    '''The Exact strategy claims provable optimality, so it is worth pinning down.'''
+
+    def mk_district(self,specs,**kwargs):
+        d = CEPDistrict(name="Exact District",code="EXACT",**kwargs)
+        for i,(isp,enrolled,bkfst,lunch) in enumerate(specs):
+            d.add_school(self.mk_school(d,str(i),isp,enrolled,bkfst,lunch))
+        return d
+
+    def run_strategy(self,district,spec):
+        Klass,params,name = parse_strategy(spec)
+        s = Klass(params,name)
+        district.strategies = [s]
+        district.run_strategies()
+        return s
+
+    def test_matches_exhaustive(self):
+        '''Same answer as brute force, on districts small enough for both.'''
+        rnd = random.Random(4242)
+        for _ in range(12):
+            specs = [(rnd.uniform(0.05,0.6),rnd.randint(100,1200),
+                      rnd.randint(0,300),rnd.randint(0,600))
+                     for _ in range(rnd.randint(2,6))]
+            exhaustive = self.run_strategy(self.mk_district(specs),"Exhaustive")
+            exact = self.run_strategy(self.mk_district(specs),"Exact")
+            self.assertAlmostEqual(exact.reimbursement,exhaustive.reimbursement,places=2)
+            self.assertTrue(exact.optimal)
+
+    def test_partitions_every_school_once(self):
+        district = self.mk_district([(0.9,500,100,300),(0.5,800,200,500),
+                                     (0.2,300,50,150),(0.1,200,40,120)])
+        exact = self.run_strategy(district,"Exact")
+        placed = sorted(s.code for g in exact.groups for s in g.schools)
+        self.assertEqual(placed,sorted(s.code for s in district.schools))
+
+    def test_high_isp_shortcut_is_one_group(self):
+        '''At or above 62.5% ISP a single group is fully funded, so no search.'''
+        district = self.mk_district([(0.8,500,100,300),(0.9,700,200,400)])
+        exact = self.run_strategy(district,"Exact")
+        self.assertEqual(len(exact.groups),1)
+        self.assertTrue(exact.optimal)
+        self.assertIn("62.5%",exact.optimality_basis)
+
+    def test_declines_oversized_district_without_crashing(self):
+        '''Above the limit it reports nothing rather than guessing.'''
+        specs = [(0.3,500,100,300)] * 8
+        district = self.mk_district(specs)
+        exact = self.run_strategy(district,"Exact?max_schools=4")
+        self.assertIsNone(exact.groups)
+        self.assertFalse(exact.optimal)
+        # as_dict must survive a strategy that produced no groups
+        d = district.as_dict()
+        self.assertEqual(d["strategies"][0]["groups"],[])
+        self.assertIsNone(d["best_index"])
+
+    def test_respects_max_groups(self):
+        specs = [(0.9,400,80,240),(0.75,500,90,300),(0.15,600,100,360),(0.1,300,50,180)]
+        district = self.mk_district(specs)
+        exact = self.run_strategy(district,"Exact?max_groups=2")
+        self.assertIsNotNone(exact.groups)
+        self.assertLessEqual(len(exact.groups),2)
+
+    def test_reported_value_matches_rescoring(self):
+        '''The dollars it claims must survive re-scoring by CEPGroup itself.'''
+        district = self.mk_district([(0.85,520,291,411),(0.4,450,158,315),
+                                     (0.22,380,95,228),(0.5,600,200,400)])
+        exact = self.run_strategy(district,"Exact")
+        rescored = sum(
+            CEPGroup(district,"g%i"%i,list(g.schools)).est_reimbursement()
+            for i,g in enumerate(exact.groups))
+        self.assertAlmostEqual(exact.reimbursement,rescored,places=2)

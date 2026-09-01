@@ -21,9 +21,9 @@ const STAGES = [
   {
     icon: <SettingsSuggestIcon />,
     kicker: "PROCESS",
-    title: "Eight grouping strategies, run in parallel",
-    body: "Each strategy proposes a different way to partition the schools into CEP groups. Every proposal is scored end to end, then the highest-scoring one that respects max_groups wins.",
-    items: ["OneToOne", "OneGroup", "Pairs", "Spread", "Binning", "Exhaustive", "NYCMODA", "GreedyLP"],
+    title: "A family of grouping strategies",
+    body: "Each strategy proposes a different way to partition the schools into CEP groups. Every proposal is scored end to end, then the highest-scoring one that respects max_groups wins. Up to 16 schools, Exact proves which grouping is best, so the answer is not just a good guess.",
+    items: ["Exact", "OneToOne", "OneGroup", "Pairs", "Spread", "Binning", "NYCMODA", "GreedyLP"],
     color: "secondary.main",
   },
   {
@@ -31,7 +31,7 @@ const STAGES = [
     kicker: "OUTPUT",
     title: "A recommended grouping, with the runners-up",
     body: "The winning strategy's groups, the estimated daily reimbursement, and the full results of every other strategy so the recommendation can be checked rather than trusted.",
-    items: ["best_strategy", "est_reimbursement", "groups[]", "school_reimbursements", "strategies[]"],
+    items: ["best_strategy", "est_reimbursement", "best_is_optimal", "groups[]", "strategies[]"],
     color: "success.main",
   },
 ];
