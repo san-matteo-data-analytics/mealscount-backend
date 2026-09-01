@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "MealsCount Frontend",
   "scripts": {
-    "watch": "webpack --watch",
-    "build": "webpack",
+    "watch": "NODE_OPTIONS=--openssl-legacy-provider webpack --watch",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider webpack",
     "postinstall": "python generate_state_json.py",
     "local_dev": "concurrently \"npm run watch\" \"FLASK_ENV=development venv/bin/python server.py\"",
     "docker_dev": "concurrently \"npm run watch\" \"gunicorn server:app\"",
-    "start": "webpack-dev-server --config ./webpack.config.js --mode development",
+    "start": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server --config ./webpack.config.js --mode development",
     "clean": "rm -rf dist/ && rm -rf node_modules/"
   },
   "author": "Nikolaj Baer",
