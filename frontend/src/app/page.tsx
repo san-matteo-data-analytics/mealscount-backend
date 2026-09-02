@@ -7,7 +7,6 @@ import AlertTitle from "@mui/material/AlertTitle";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
-import CircularProgress from "@mui/material/CircularProgress";
 import Divider from "@mui/material/Divider";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
@@ -19,9 +18,10 @@ import SchoolImport from "@/components/SchoolImport";
 import SchoolEditor from "@/components/SchoolEditor";
 import SettingsPanel from "@/components/SettingsPanel";
 import ResultsView from "@/components/ResultsView";
-import { optimizeDistrict } from "@/lib/api";
+import OptimizeProgress, { type RunProgress } from "@/components/OptimizeProgress";
+import { isAbortError, optimizeDistrict } from "@/lib/api";
 import { EMPTY_SCHOOL, SAMPLE_SETTINGS } from "@/lib/sample";
-import type { DistrictSettings, OptimizeResponse, SchoolInput } from "@/lib/types";
+import type { DistrictSettings, OptimizeEvent, OptimizeResponse, SchoolInput } from "@/lib/types";
 
 /** Mirrors EXACT_MAX_SCHOOLS in server.py -- above this, optimality is not proven. */
 const EXACT_MAX_SCHOOLS = 16;
@@ -42,8 +42,15 @@ export default function OptimizerPage() {
   });
   const [result, setResult] = React.useState<OptimizeResponse | null>(null);
   const [error, setError] = React.useState<string | null>(null);
-  const [running, setRunning] = React.useState(false);
+  const [run_, setRun] = React.useState<{ startedAt: number; progress: RunProgress } | null>(null);
+  const abortRef = React.useRef<AbortController | null>(null);
   const resultsRef = React.useRef<HTMLDivElement>(null);
+
+  const running = run_ !== null;
+
+  // A run outlives this component only if the user navigates away mid-request;
+  // drop the listener so a late resolve cannot set state on an unmounted tree.
+  React.useEffect(() => () => abortRef.current?.abort(), []);
 
   const activeSchools = schools.filter(
     (s) => s.active !== false && s.school_code && Number(s.total_enrolled) > 0,
@@ -53,25 +60,94 @@ export default function OptimizerPage() {
     (s) => Number(s.daily_lunch_served) > 0 || Number(s.daily_breakfast_served) > 0,
   );
 
+  /** Folds one streamed record into the progress panel's state. */
+  function applyEvent(event: OptimizeEvent) {
+    setRun((current) => {
+      if (!current) return current;
+      const p = current.progress;
+      switch (event.event) {
+        case "start":
+          return {
+            ...current,
+            progress: {
+              ...p,
+              strategies: event.strategies,
+              currentIndex: 0,
+              evaluateBy: event.evaluate_by,
+              maxGroups: event.max_groups,
+            },
+          };
+        case "strategy_start":
+          return { ...current, progress: { ...p, currentIndex: event.index } };
+        case "strategy_done":
+          return {
+            ...current,
+            progress: {
+              ...p,
+              currentIndex: event.index + 1,
+              completed: [
+                ...p.completed,
+                {
+                  name: event.name,
+                  time: event.time,
+                  reimbursement: event.reimbursement,
+                  students_covered: event.students_covered,
+                  groups: event.groups,
+                },
+              ],
+            },
+          };
+        default:
+          return current;
+      }
+    });
+  }
+
   async function run() {
-    setRunning(true);
+    const controller = new AbortController();
+    abortRef.current = controller;
     setError(null);
+    setRun({
+      startedAt: performance.now(),
+      progress: {
+        strategies: null,
+        currentIndex: null,
+        completed: [],
+        streaming: true,
+        evaluateBy: settings.evaluate_by,
+        maxGroups: settings.max_groups,
+      },
+    });
+
     try {
-      const res = await optimizeDistrict({
-        ...settings,
-        name: settings.name.trim() || "Unnamed District",
-        schools,
-      });
+      const res = await optimizeDistrict(
+        { ...settings, name: settings.name.trim() || "Unnamed District", schools },
+        {
+          signal: controller.signal,
+          onEvent: applyEvent,
+          onFallback: () =>
+            setRun((c) => (c ? { ...c, progress: { ...c.progress, streaming: false } } : c)),
+        },
+      );
       setResult(res);
       requestAnimationFrame(() =>
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      setResult(null);
+      // A stop is the user's own doing, not a failure: leave the previous
+      // results and say nothing.
+      if (!isAbortError(e)) {
+        setError(e instanceof Error ? e.message : String(e));
+        setResult(null);
+      }
     } finally {
-      setRunning(false);
+      abortRef.current = null;
+      setRun(null);
     }
+  }
+
+  function cancel() {
+    abortRef.current?.abort();
   }
 
   return (
@@ -118,45 +194,53 @@ export default function OptimizerPage() {
             </Alert>
           )}
 
-          <Paper
-            variant="outlined"
-            sx={{
-              p: 2.5,
-              mb: 4,
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              alignItems: { sm: "center" },
-              gap: 2,
-            }}
-          >
-            <Box sx={{ flexGrow: 1 }}>
-              <Typography variant="h4">Ready to optimize</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {activeSchools.length} school{activeSchools.length === 1 ? "" : "s"} will be sent.{" "}
-                {activeSchools.length === 0
-                  ? "Every school needs a code and a non-zero enrollment."
-                  : activeSchools.length <= EXACT_MAX_SCHOOLS
-                    ? "At this size the exact solver runs, so the result comes back proven optimal."
-                    : `Above ${EXACT_MAX_SCHOOLS} schools optimality cannot be proven by search, so the server falls back to simulated annealing and the LP solver — expect several seconds.`}
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={run}
-              disabled={running || activeSchools.length === 0}
-              startIcon={running ? <CircularProgress size={18} color="inherit" /> : <PlayArrowIcon />}
-              sx={{ flexShrink: 0 }}
+          {run_ ? (
+            <OptimizeProgress
+              progress={run_.progress}
+              startedAt={run_.startedAt}
+              onCancel={cancel}
+            />
+          ) : (
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2.5,
+                mb: 4,
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                alignItems: { sm: "center" },
+                gap: 2,
+              }}
             >
-              {running ? "Optimizing…" : "Optimize"}
-            </Button>
-          </Paper>
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography variant="h4">Ready to optimize</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {activeSchools.length} school{activeSchools.length === 1 ? "" : "s"} will be sent.{" "}
+                  {activeSchools.length === 0
+                    ? "Every school needs a code and a non-zero enrollment."
+                    : activeSchools.length <= EXACT_MAX_SCHOOLS
+                      ? "At this size the exact solver runs, so the result comes back proven optimal — and comes back immediately."
+                      : `Above ${EXACT_MAX_SCHOOLS} schools optimality cannot be proven by search, so the server adds simulated annealing and the LP solver. Those two do the searching: budget about a minute at 40 schools, more as the district grows. You will see each strategy land as it finishes.`}
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={run}
+                disabled={activeSchools.length === 0}
+                startIcon={<PlayArrowIcon />}
+                sx={{ flexShrink: 0 }}
+              >
+                Optimize
+              </Button>
+            </Paper>
+          )}
         </>
       )}
 
       {error && (
-        <Alert severity="error" sx={{ mb: 4 }}>
-          <AlertTitle>Could not reach the optimizer</AlertTitle>
+        <Alert severity="error" sx={{ mb: 4 }} onClose={() => setError(null)}>
+          <AlertTitle>The optimization did not finish</AlertTitle>
           {error}
           <Box component="pre" sx={{ mt: 1, fontSize: "0.78rem", whiteSpace: "pre-wrap" }}>
             Start the API from the repo root: venv/bin/python server.py{"\n"}

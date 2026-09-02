@@ -69,6 +69,48 @@ class CEPTestCase(unittest.TestCase):
         sobj["schools"][1]['total_enrolled'] = "NA"
         result = self.client.post('/api/districts/optimize/', json = sobj)
 
+    def test_optimize_stream(self):
+        """The streamed run must report every strategy and agree with optimize()."""
+        sobj = oceanside()
+        result = self.client.post('/api/districts/optimize-stream/', json = sobj)
+        self.assertEqual(result.status_code,200)
+        self.assertTrue("ndjson" in result.headers["Content-Type"])
+
+        events = [json.loads(line) for line in result.data.decode().splitlines() if line.strip()]
+        by_type = {}
+        for e in events:
+            by_type.setdefault(e["event"],[]).append(e)
+
+        self.assertNotIn("error",by_type)
+        self.assertEqual(len(by_type["start"]),1)
+        self.assertEqual(len(by_type["done"]),1)
+
+        # Every announced strategy has to start and finish, in order.
+        announced = by_type["start"][0]["strategies"]
+        self.assertEqual([e["name"] for e in by_type["strategy_start"]],announced)
+        self.assertEqual([e["name"] for e in by_type["strategy_done"]],announced)
+
+        # The terminal payload is what the blocking endpoint would have returned.
+        streamed = by_type["done"][0]["result"]
+        blocking = self.client.post('/api/districts/optimize/', json = oceanside()).json
+        self.assertEqual(streamed["best_strategy"],blocking["best_strategy"])
+        self.assertEqual(streamed["est_reimbursement"],blocking["est_reimbursement"])
+        self.assertEqual(len(streamed["strategies"]),len(blocking["strategies"]))
+
+        # Per-strategy scores must match the ones in the final result, so a
+        # "best so far" built from the stream cannot disagree with the winner.
+        final = {s["name"]:s["reimbursement"] for s in streamed["strategies"]}
+        for e in by_type["strategy_done"]:
+            self.assertEqual(e["reimbursement"],final[e["name"]])
+
+    def test_optimize_stream_no_schools(self):
+        """A rejected payload fails before streaming starts, as plain JSON."""
+        sobj = oceanside()
+        sobj["schools"] = []
+        result = self.client.post('/api/districts/optimize-stream/', json = sobj)
+        self.assertEqual(result.status_code,200)
+        self.assertTrue("error" in result.json)
+
     def test_broken_json(self):
         sobj = oceanside()
         result = self.client.post('/api/districts/optimize/', data = "{Broken JSON}")

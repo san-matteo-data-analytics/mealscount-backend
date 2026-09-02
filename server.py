@@ -5,7 +5,9 @@ from werkzeug.routing import BaseConverter
 from urllib.parse import urlparse
 import os,os.path,datetime,time
 import us,uuid,json
+import queue,threading
 import zipfile
+from collections import namedtuple
 from io import BytesIO
 
 import boto3
@@ -159,13 +161,21 @@ def optimize_async():
 
     return result
 
-@app.route("/api/districts/optimize/", methods=['POST'])
-def optimize():
-    d_obj = request.json
+class OptimizationInputError(ValueError):
+    '''A bad district payload. Reported back to the caller, not a server fault.'''
 
-    if not d_obj:
-        return {"error":"Invalid JSON data, please ensure all data fields are active"}
 
+# Everything the endpoints need to run and describe one optimization.
+Optimization = namedtuple("Optimization","district state evaluate_by max_groups isp_threshold")
+
+
+def build_optimization(d_obj):
+    '''Turn a request body into a district with its strategies already attached.
+
+    Shared by optimize() and optimize_stream() so the two cannot drift -- the
+    streaming endpoint has to compute exactly what the blocking one computes,
+    only narrating it as it goes.
+    '''
     isp_threshold = ("isp_threshold" in d_obj) and float(d_obj.get("isp_threshold")) or DEFAULT_ISP_THRESHOLD
     schools = d_obj["schools"]
     state = d_obj["state_code"]
@@ -192,7 +202,7 @@ def optimize():
         district.add_school(CEPSchool(row))
 
     if not district.schools:
-        return {"error":"No schools provided"}
+        raise OptimizationInputError("No schools provided")
 
     # TODO allow this as a param
     max_groups = d_obj.get("max_groups",10)
@@ -202,19 +212,153 @@ def optimize():
         len(district.schools),evaluate_by,max_groups)
     add_strategies(district,strategies_to_run,isp_threshold)
 
-    t0 = time.time()
-    district.run_strategies()
-    district.evaluate_strategies(max_groups=max_groups,evaluate_by=evaluate_by)
+    return Optimization(district,state,evaluate_by,max_groups,isp_threshold)
 
-    result = district.as_dict()
-    result["state_code"] = state
-    result["evaluate_by"] = evaluate_by
-    result["max_groups"] = max_groups
+
+def optimization_result(opt,elapsed):
+    '''The response body, once opt.district has had its strategies run and evaluated.'''
+    result = opt.district.as_dict()
+    result["state_code"] = opt.state
+    result["evaluate_by"] = opt.evaluate_by
+    result["max_groups"] = opt.max_groups
     result["optimization_info"] = {
         "timestamp":str(datetime.datetime.now()),
-        "time": time.time() - t0
+        "time": elapsed,
     }
     return result
+
+
+@app.route("/api/districts/optimize/", methods=['POST'])
+def optimize():
+    d_obj = request.json
+
+    if not d_obj:
+        return {"error":"Invalid JSON data, please ensure all data fields are active"}
+
+    try:
+        opt = build_optimization(d_obj)
+    except OptimizationInputError as e:
+        return {"error":str(e)}
+
+    t0 = time.time()
+    opt.district.run_strategies()
+    opt.district.evaluate_strategies(max_groups=opt.max_groups,evaluate_by=opt.evaluate_by)
+
+    return optimization_result(opt,time.time() - t0)
+
+
+# How long the stream may go silent before it emits a keepalive. A single
+# strategy on a large district can run for minutes; without a byte on the wire
+# the dev proxy (and any intermediary) treats the socket as dead and resets it.
+STREAM_HEARTBEAT_SECONDS = 5
+
+
+def _ndjson(obj):
+    return json.dumps(obj) + "\n"
+
+
+@app.route("/api/districts/optimize-stream/", methods=['POST'])
+def optimize_stream():
+    '''optimize(), narrated as it runs.
+
+    The blocking endpoint can sit for minutes on a large district with nothing
+    on the wire, so a caller cannot tell a slow run from a hung one -- and
+    neither can the proxies in between. This emits newline-delimited JSON:
+
+        {"event":"start",          "strategies":[...], "school_count":n}
+        {"event":"strategy_start", "index":i, "name":...}
+        {"event":"strategy_done",  "index":i, "reimbursement":..., "groups":n}
+        {"event":"heartbeat",      "elapsed":s}
+        {"event":"done",           "result":{...}}   # exactly optimize()'s body
+        {"event":"error",          "error":"..."}
+
+    The status line is already sent by the time the strategies run, so a failure
+    mid-run arrives as an "error" record rather than an HTTP status.
+    '''
+    d_obj = request.json
+
+    if not d_obj:
+        return {"error":"Invalid JSON data, please ensure all data fields are active"}
+
+    try:
+        opt = build_optimization(d_obj)
+    except OptimizationInputError as e:
+        return {"error":str(e)}
+
+    # Resolved eagerly: the generator below runs after the request context is
+    # gone, so it must not touch `request`.
+    district = opt.district
+    strategies = list(district.strategies)
+
+    def generate():
+        t0 = time.time()
+        yield _ndjson({
+            "event":"start",
+            "school_count":len(district.schools),
+            "evaluate_by":opt.evaluate_by,
+            "max_groups":opt.max_groups,
+            "strategies":[s.name for s in strategies],
+        })
+
+        # The strategies run on a worker so the generator stays free to emit
+        # heartbeats through a single long one. Daemon: a client that hangs up
+        # mid-run must not keep the process alive.
+        q = queue.Queue()
+        stop = threading.Event()
+
+        def worker():
+            try:
+                for i,s in enumerate(strategies):
+                    if stop.is_set():
+                        return
+                    q.put({"event":"strategy_start","index":i,"name":s.name})
+                    st = time.time()
+                    s.create_groups(district)
+                    q.put({
+                        "event":"strategy_done",
+                        "index":i,
+                        "name":s.name,
+                        "time":time.time() - st,
+                        "groups":len(s.groups or []),
+                        "reimbursement":s.reimbursement,
+                        "students_covered":s.students_covered,
+                    })
+                district.evaluate_strategies(max_groups=opt.max_groups,evaluate_by=opt.evaluate_by)
+                q.put({"event":"done","result":optimization_result(opt,time.time() - t0)})
+            except Exception as e:
+                q.put({"event":"error","error":"%s: %s" % (type(e).__name__,e)})
+            finally:
+                q.put(None)
+
+        threading.Thread(target=worker,daemon=True).start()
+
+        try:
+            while True:
+                try:
+                    msg = q.get(timeout=STREAM_HEARTBEAT_SECONDS)
+                except queue.Empty:
+                    yield _ndjson({"event":"heartbeat","elapsed":time.time() - t0})
+                    continue
+                if msg is None:
+                    break
+                yield _ndjson(msg)
+        finally:
+            # The client hung up (the heartbeat is what notices, within
+            # STREAM_HEARTBEAT_SECONDS). Stop at the next strategy boundary
+            # rather than finishing a run nobody is waiting for -- a strategy
+            # already under way cannot be interrupted. Harmless on the normal
+            # path, where the worker has already finished.
+            stop.set()
+
+    return app.response_class(
+        generate(),
+        mimetype="application/x-ndjson",
+        headers={
+            "Cache-Control":"no-cache, no-transform",
+            # Tell nginx/the Heroku router not to sit on the chunks
+            "X-Accel-Buffering":"no",
+        },
+    )
 
 @app.route("/api/districts/calculate/", methods=['POST'])
 def calculate():

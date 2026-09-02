@@ -14,6 +14,15 @@ const nextConfig: NextConfig = {
   // away, forcing an extra round-trip on every optimize call.
   skipTrailingSlashRedirect: true,
 
+  experimental: {
+    // Next's dev proxy for rewrites defaults to a 30s timeout and then kills the
+    // socket, which surfaces as "Failed to proxy ... socket hang up (ECONNRESET)"
+    // even though Flask is alive and still working. /api/districts/optimize/ runs
+    // the strategies synchronously and routinely exceeds 30s once a district has
+    // more than ~15 schools, so give it room.
+    proxyTimeout: 10 * 60 * 1000,
+  },
+
   async rewrites() {
     return [
       // Flask's routes are declared with a trailing slash. ":path*" does not

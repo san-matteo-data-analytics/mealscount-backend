@@ -138,3 +138,34 @@ export interface OptimizeResponse {
   optimization_info?: { timestamp: string; time: number };
   error?: string;
 }
+
+/**
+ * Records emitted by POST /api/districts/optimize-stream/ as newline-delimited
+ * JSON, one per line, in the order the server produced them.
+ */
+export type OptimizeEvent =
+  | {
+      event: "start";
+      school_count: number;
+      evaluate_by: EvaluateBy;
+      max_groups: number;
+      /** Raw strategy strings, in run order — the denominator for progress. */
+      strategies: string[];
+    }
+  | { event: "strategy_start"; index: number; name: string }
+  | {
+      event: "strategy_done";
+      index: number;
+      name: string;
+      /** Wall-clock seconds this one strategy took. */
+      time: number;
+      groups: number;
+      reimbursement: number;
+      students_covered: number;
+    }
+  /** Keepalive during a long strategy, so no intermediary calls the socket dead. */
+  | { event: "heartbeat"; elapsed: number }
+  /** Terminal success. `result` is byte-for-byte what /optimize/ would return. */
+  | { event: "done"; result: OptimizeResponse }
+  /** Terminal failure. Arrives in-band because the 200 was already sent. */
+  | { event: "error"; error: string };
