@@ -122,9 +122,7 @@ export default function OptimizeProgress({
 
       {progress.streaming && currentIndex !== null && onCurrent > SLOW_STRATEGY_SECONDS && (
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1.5 }}>
-          {label(strategies![currentIndex])} has been searching for {formatElapsed(onCurrent)}. The
-          searching strategies take tens of seconds on a large district — this is expected, not a
-          hang. Stopping keeps whatever you had before.
+          {label(strategies![currentIndex])} has been searching for {formatElapsed(onCurrent)}. The optimization can take minutes for large districts.
         </Typography>
       )}
 
