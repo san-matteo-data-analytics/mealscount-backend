@@ -49,7 +49,7 @@ async function streamOptimize(
       signal: opts.signal,
     });
   } catch (e) {
-    throw unreachable(e, STREAM_URL);
+    throw unreachable(e);
   }
 
   // Not implemented here — fall back rather than failing the run.
@@ -98,15 +98,15 @@ async function streamOptimize(
   } catch (e) {
     if (isAbortError(e)) throw e;
     if (e instanceof Error && !(e instanceof TypeError)) throw e;
-    throw unreachable(e, STREAM_URL);
+    throw unreachable(e);
   } finally {
     void reader.cancel().catch(() => {});
   }
 
   if (!result) {
     throw new Error(
-      "The optimizer's connection closed before it finished. Nothing timed out on the " +
-        "server, so the run may still be going — check the server.py console.",
+      "The connection dropped before the optimizer finished. Your schools are still here — " +
+        "try running it again.",
     );
   }
   return unwrap(result);
@@ -126,7 +126,7 @@ async function blockingOptimize(
       signal,
     });
   } catch (e) {
-    throw unreachable(e, BLOCKING_URL);
+    throw unreachable(e);
   }
   if (!res.ok) throw statusError(res);
   return unwrap((await res.json()) as OptimizeResponse);
@@ -141,17 +141,19 @@ function statusError(res: Response): Error {
   // A 504/502 on a long run is the proxy giving up, not the optimizer failing.
   if (res.status === 502 || res.status === 504) {
     return new Error(
-      `The proxy gave up on the request (${res.status}) while the optimizer was still ` +
-        `working. Raise experimental.proxyTimeout in next.config.ts.`,
+      "The optimizer was still working when the connection timed out. This usually means the " +
+        "district is very large — try again, or lower the maximum number of groups.",
     );
   }
-  return new Error(`The optimizer returned ${res.status} ${res.statusText}.`);
+  return new Error(
+    `The optimizer could not complete the run (error ${res.status}). Please try again.`,
+  );
 }
 
-function unreachable(cause: unknown, url: string): Error {
+function unreachable(cause: unknown): Error {
   if (isAbortError(cause)) return cause as unknown as Error;
   return new Error(
-    `Could not reach ${url}. The API is either not running or dropped the connection.`,
+    "The optimizer could not be reached. Check your connection and try again.",
     { cause },
   );
 }

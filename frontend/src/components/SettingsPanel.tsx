@@ -68,7 +68,7 @@ export default function SettingsPanel({
         District settings
       </Typography>
       <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2.5 }}>
-        The knobs that change the answer without changing the data.
+        These change the answer without changing any of your school data.
       </Typography>
 
       <Box
@@ -119,7 +119,7 @@ export default function SettingsPanel({
             <MenuItem value="reimbursement">Most dollars</MenuItem>
             <MenuItem value="coverage">Most students covered</MenuItem>
           </Select>
-          <FormHelperText>These two objectives do not always agree.</FormHelperText>
+          <FormHelperText>These two do not always point to the same grouping.</FormHelperText>
         </FormControl>
 
         <Box>
@@ -140,12 +140,14 @@ export default function SettingsPanel({
             valueLabelDisplay="auto"
             onChange={(_, v) => set("isp_threshold", v as number)}
           />
-          <FormHelperText sx={{ mt: 0 }}>Federal floor is 25% as of October 2023.</FormHelperText>
+          <FormHelperText sx={{ mt: 0 }}>
+            The lowest a group can go and still earn anything. Federal floor is 25%.
+          </FormHelperText>
         </Box>
 
         <Box>
           <Typography variant="body2" gutterBottom>
-            Maximum groups: <strong>{settings.max_groups}</strong>
+            Most groups to allow: <strong>{settings.max_groups}</strong>
           </Typography>
           <Slider
             size="small"
@@ -157,23 +159,23 @@ export default function SettingsPanel({
             onChange={(_, v) => set("max_groups", v as number)}
           />
           <FormHelperText sx={{ mt: 0 }}>
-            Strategies exceeding this are disqualified — more groups means more to administer.
+            The most groups you are willing to administer. Any grouping needing more is set aside.
           </FormHelperText>
         </Box>
 
         <FormControl size="small" fullWidth>
-          <InputLabel id="hhfka-label">HHFKA §60 band</InputLabel>
+          <InputLabel id="hhfka-label">Paid lunch equity</InputLabel>
           <Select
             labelId="hhfka-label"
-            label="HHFKA §60 band"
+            label="Paid lunch equity"
             value={settings.hhfka_sixty}
             onChange={(e) => set("hhfka_sixty", e.target.value as HhfkaSixty)}
           >
-            <MenuItem value="less">less</MenuItem>
-            <MenuItem value="more">more</MenuItem>
-            <MenuItem value="max">max</MenuItem>
+            <MenuItem value="less">Lower band</MenuItem>
+            <MenuItem value="more">Middle band</MenuItem>
+            <MenuItem value="max">Upper band</MenuItem>
           </Select>
-          <FormHelperText>Paid lunch equity band; shifts every per-meal rate slightly.</FormHelperText>
+          <FormHelperText>Your district&apos;s band. It shifts every per-meal rate slightly.</FormHelperText>
         </FormControl>
 
         <Box>
@@ -184,9 +186,11 @@ export default function SettingsPanel({
                 onChange={(e) => set("sfa_certified", e.target.checked)}
               />
             }
-            label="SFA certified"
+            label="School food authority certified"
           />
-          <FormHelperText sx={{ mt: -0.5 }}>Adds the performance-based 7¢ per lunch.</FormHelperText>
+          <FormHelperText sx={{ mt: -0.5 }}>
+            Adds the performance-based 7¢ per lunch your SFA has earned.
+          </FormHelperText>
         </Box>
       </Box>
     </Paper>

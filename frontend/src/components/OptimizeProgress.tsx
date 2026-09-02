@@ -11,9 +11,10 @@ import Typography from "@mui/material/Typography";
 import CheckIcon from "@mui/icons-material/Check";
 import StopIcon from "@mui/icons-material/Stop";
 import { usd } from "@/lib/cep";
+import { strategyLabel } from "@/lib/content";
 import type { EvaluateBy } from "@/lib/types";
 
-/** One strategy the server has finished, in the order it finished. */
+/** One grouping the optimizer has finished, in the order it finished. */
 export interface CompletedStrategy {
   name: string;
   time: number;
@@ -23,23 +24,20 @@ export interface CompletedStrategy {
 }
 
 export interface RunProgress {
-  /** Raw strategy strings from the "start" record. Null until it arrives. */
+  /** The approaches this run will try. Null until the optimizer says what they are. */
   strategies: string[] | null;
-  /** Index of the strategy currently running. */
+  /** Index of the approach currently running. */
   currentIndex: number | null;
   completed: CompletedStrategy[];
-  /** False once we know we fell back to the blocking endpoint — no progress to show. */
+  /** False once we know this run reports nothing until it is completely done. */
   streaming: boolean;
   evaluateBy: EvaluateBy;
   maxGroups: number;
 }
 
-/** Strategy names arrive as "Exact?evaluate_by=…"; only the head is meaningful here. */
-const label = (name: string) => name.split("?")[0];
-
 /**
- * After this long on a single strategy, say so — the searching strategies run
- * for tens of seconds and silence reads as a hang.
+ * After this long on a single approach, say so — the searching ones run for tens
+ * of seconds, and silence reads as a hang.
  */
 const SLOW_STRATEGY_SECONDS = 6;
 
@@ -68,8 +66,8 @@ export default function OptimizeProgress({
   const spentOnCompleted = completed.reduce((sum, c) => sum + c.time, 0);
   const onCurrent = elapsed - spentOnCompleted;
 
-  // Mirror the server's ranking so the leader shown here is the one that wins:
-  // strategies over max_groups are disqualified (server.py evaluate_strategies).
+  // Mirror the optimizer's own ranking so the leader shown here is the one that
+  // ends up winning: anything over the group limit is set aside first.
   const score = (c: CompletedStrategy) =>
     progress.evaluateBy === "coverage" ? c.students_covered : c.reimbursement;
   const eligible = completed.filter((c) => c.groups <= progress.maxGroups);
@@ -95,12 +93,12 @@ export default function OptimizeProgress({
           </Stack>
           <Typography variant="body2" color="text.secondary">
             {!progress.streaming
-              ? "This API has no progress endpoint, so there is nothing to report until it finishes."
+              ? "Working. This run reports nothing until it is finished, so hold tight."
               : total === null
-                ? "Waiting for the optimizer to start…"
+                ? "Getting started…"
                 : currentIndex !== null && currentIndex < total
-                  ? `Strategy ${currentIndex + 1} of ${total} — running ${label(strategies![currentIndex])}`
-                  : `${completed.length} of ${total} strategies done — scoring the results`}
+                  ? `Strategy ${currentIndex + 1} of ${total} — running ${strategyLabel(strategies![currentIndex])}`
+                  : `All ${total} tried — picking the best one`}
           </Typography>
         </Box>
         <Button
@@ -122,7 +120,7 @@ export default function OptimizeProgress({
 
       {progress.streaming && currentIndex !== null && onCurrent > SLOW_STRATEGY_SECONDS && (
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1.5 }}>
-          {label(strategies![currentIndex])} has been searching for {formatElapsed(onCurrent)}. The optimization can take minutes for large districts.
+          {strategyLabel(strategies![currentIndex])} has been searching for {formatElapsed(onCurrent)}. The optimization can take minutes for large districts.
         </Typography>
       )}
 
@@ -141,11 +139,11 @@ export default function OptimizeProgress({
               >
                 <CheckIcon fontSize="small" color="disabled" />
                 <Typography variant="body2" sx={{ flexGrow: 1, fontWeight: isLeader ? 600 : 400 }}>
-                  {label(c.name)}
+                  {strategyLabel(c.name)}
                 </Typography>
                 {disqualified && (
                   <Chip
-                    label={`${c.groups} groups — over the cap`}
+                    label={`${c.groups} groups — more than you allow`}
                     size="small"
                     variant="outlined"
                   />

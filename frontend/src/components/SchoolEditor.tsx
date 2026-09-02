@@ -42,21 +42,26 @@ const numberFieldSx = {
 
 /** Colour a school's own ISP by which funding zone it lands in on its own. */
 function ispChip(isp: number, threshold: number) {
-  if (isp >= FULL_FUNDING_ISP) return { color: "success" as const, title: "Fully funded alone — has surplus ISP to share" };
-  if (isp >= threshold) return { color: "warning" as const, title: "Partially funded alone" };
-  return { color: "default" as const, title: "Earns nothing alone — needs a group" };
+  if (isp >= FULL_FUNDING_ISP)
+    return { color: "success" as const, title: "Fully funded on its own, with need to spare it could share" };
+  if (isp >= threshold) return { color: "warning" as const, title: "Only partly funded on its own" };
+  return { color: "default" as const, title: "Earns nothing on its own — needs to be grouped" };
 }
 
 const HEADERS: { label: string; hint: string; width?: number }[] = [
-  { label: "", hint: "Include this school in grouping", width: 52 },
-  { label: "School", hint: "Name and code — the code identifies it in the results" },
-  { label: "Enrolled", hint: "Denominator of ISP", width: 128 },
-  { label: "Identified", hint: "Numerator of ISP: directly certified, foster, homeless, migrant", width: 124 },
-  { label: "ISP", hint: "identified ÷ enrolled, computed live", width: 92 },
-  { label: "Breakfasts/day", hint: "Average daily breakfasts served", width: 130 },
-  { label: "Lunches/day", hint: "Average daily lunches served", width: 130 },
-  { label: "Severe need", hint: "Qualifies for the higher free breakfast rate", width: 100 },
-  { label: "", hint: "Remove", width: 52 },
+  { label: "", hint: "Uncheck to leave this school out of the grouping", width: 52 },
+  { label: "School", hint: "Name and code — the code is how the school appears in your results" },
+  { label: "Enrolled", hint: "Total students enrolled", width: 128 },
+  {
+    label: "Identified",
+    hint: "Students already identified as eligible: directly certified, plus foster, homeless, migrant and Head Start",
+    width: 124,
+  },
+  { label: "ISP", hint: "Identified students as a share of enrollment, updated as you type", width: 92 },
+  { label: "Breakfasts/day", hint: "Breakfasts served on a typical day", width: 130 },
+  { label: "Lunches/day", hint: "Lunches served on a typical day", width: 130 },
+  { label: "Severe need", hint: "Check if this school qualifies for the higher breakfast rate", width: 100 },
+  { label: "", hint: "Remove this school", width: 52 },
 ];
 
 export default function SchoolEditor({
@@ -100,8 +105,8 @@ export default function SchoolEditor({
         <Box>
           <Typography variant="h4">Schools</Typography>
           <Typography variant="caption" color="text.secondary">
-            {schools.filter((s) => s.active !== false).length} active ·{" "}
-            {totals.enrolled.toLocaleString()} students · district-wide ISP {pct(districtIsp)}
+            {schools.filter((s) => s.active !== false).length} included ·{" "}
+            {totals.enrolled.toLocaleString()} students · {pct(districtIsp)} identified district-wide
           </Typography>
         </Box>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -212,7 +217,7 @@ export default function SchoolEditor({
                       onChange={(e) => update(idx, { total_eligible: e.target.value })}
                       sx={numberFieldSx}
                       error={n(s.total_eligible) > enrolled}
-                      helperText={n(s.total_eligible) > enrolled ? "clamped to enrolled" : undefined}
+                      helperText={n(s.total_eligible) > enrolled ? "more than enrollment" : undefined}
                     />
                   </TableCell>
                   <TableCell>

@@ -98,16 +98,16 @@ export async function parseSchoolFile(file: File): Promise<ImportResult> {
     workbook = XLSX.read(buffer, { type: "array" });
   } catch {
     throw new Error(
-      `Could not read "${file.name}". Expected a .csv, .xlsx or .xls file.`,
+      `"${file.name}" could not be opened. It needs to be a .csv, .xlsx or .xls file.`,
     );
   }
 
   const sheetName = workbook.SheetNames[0];
-  if (!sheetName) throw new Error(`"${file.name}" contains no sheets.`);
+  if (!sheetName) throw new Error(`"${file.name}" has no sheets in it.`);
 
   const sheet = workbook.Sheets[sheetName];
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
-  if (rows.length === 0) throw new Error(`"${file.name}" has no data rows.`);
+  if (rows.length === 0) throw new Error(`"${file.name}" has column headings but no schools in it.`);
 
   const headers = Object.keys(rows[0]);
   const matched = mapHeaders(headers);
@@ -119,8 +119,8 @@ export async function parseSchoolFile(file: File): Promise<ImportResult> {
   }
   if (missingRequired.length === REQUIRED.length) {
     throw new Error(
-      `No recognisable columns in "${file.name}". Found: ${headers.slice(0, 8).join(", ")}. ` +
-        `Download the template to see the expected headers.`,
+      `None of the columns in "${file.name}" were recognised. It has: ${headers.slice(0, 8).join(", ")}. ` +
+        `Download the template to see which headings to use.`,
     );
   }
 
@@ -140,11 +140,11 @@ export async function parseSchoolFile(file: File): Promise<ImportResult> {
 
     // Mirror the server's two silent drops, but say so out loud.
     if (!code) {
-      skipped.push({ row: rowNumber, label, reason: "No school code — the optimizer would drop this row" });
+      skipped.push({ row: rowNumber, label, reason: "No school code, so this school cannot be identified" });
       return;
     }
     if (enrolled <= 0) {
-      skipped.push({ row: rowNumber, label, reason: "Enrollment is 0 or blank — the optimizer would drop this row" });
+      skipped.push({ row: rowNumber, label, reason: "Enrollment is blank or zero, so this school cannot be grouped" });
       return;
     }
 

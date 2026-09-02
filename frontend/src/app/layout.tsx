@@ -6,9 +6,9 @@ import theme from "@/theme";
 import AppShell from "@/components/AppShell";
 
 export const metadata: Metadata = {
-  title: "MealsCount — CEP grouping optimizer",
+  title: "MealsCount — CEP grouping for school districts",
   description:
-    "Upload a district's schools and find the CEP grouping that earns the most federal meal reimbursement.",
+    "Upload your district's schools and find the way of grouping them that feeds the most students and earns the most federal meal reimbursement.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

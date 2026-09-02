@@ -1,14 +1,10 @@
 "use client";
 
 import * as React from "react";
-import Accordion from "@mui/material/Accordion";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import AccordionSummary from "@mui/material/AccordionSummary";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
-import Divider from "@mui/material/Divider";
 import LinearProgress from "@mui/material/LinearProgress";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
@@ -20,12 +16,12 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { SERVING_DAYS_PER_YEAR, num, pct, usd } from "@/lib/cep";
+import { strategyLabel } from "@/lib/content";
 import type { OptimizeResponse, StrategyOutput } from "@/lib/types";
 
 function StatCard({
@@ -82,7 +78,13 @@ export default function ResultsView({ result }: { result: OptimizeResponse }) {
   );
 
   if (!winner) {
-    return <Alert severity="error">The optimizer returned no usable strategy for this district.</Alert>;
+    return (
+      <Alert severity="error">
+        <AlertTitle>No workable grouping came back</AlertTitle>
+        Nothing the optimizer tried fit inside your maximum number of groups. Try raising that limit
+        in the district settings and running it again.
+      </Alert>
+    );
   }
 
   return (
@@ -93,34 +95,31 @@ export default function ResultsView({ result }: { result: OptimizeResponse }) {
 
       {result.best_is_optimal ? (
         <Alert severity="success" icon={<VerifiedIcon />} sx={{ mb: 3 }}>
-          <AlertTitle>This grouping is provably optimal</AlertTitle>
-          No other way of grouping these schools earns more.{" "}
-          {result.optimality_basis ? (
-            <Typography variant="body2" component="span" color="text.secondary">
-              ({result.optimality_basis})
-            </Typography>
-          ) : null}
+          <AlertTitle>This is the best grouping there is</AlertTitle>
+          Every possible way of grouping these schools was accounted for, and none of them earns more
+          than this one. You can file this with confidence.
         </Alert>
       ) : (
         <Alert severity="info" sx={{ mb: 3 }}>
-          <AlertTitle>Best result found</AlertTitle>
-          This district is too large to prove optimality by search, so this is the best grouping the
-          strategies found — not a guarantee that nothing beats it.
+          <AlertTitle>The best grouping found</AlertTitle>
+          Your district has too many schools to check every possible combination, so this is the best
+          grouping the search turned up. It is a strong answer, but not a guarantee that nothing beats
+          it.
         </Alert>
       )}
 
       <Stack direction="row" flexWrap="wrap" useFlexGap spacing={2} sx={{ mb: 3 }}>
         <StatCard
           label="Recommended grouping"
-          value={winner.name.split("?")[0]}
+          value={strategyLabel(winner.name)}
           sub={`${winner.groups.length} group${winner.groups.length === 1 ? "" : "s"} across ${result.school_count} schools`}
           highlight
         />
         <StatCard label="Per serving day" value={usd(winner.reimbursement)} sub="Estimated federal reimbursement" />
         <StatCard
-          label={`Annualized (${SERVING_DAYS_PER_YEAR} days)`}
+          label={`Per year (${SERVING_DAYS_PER_YEAR} days)`}
           value={usd(winner.reimbursement * SERVING_DAYS_PER_YEAR)}
-          sub="Daily figure × serving days"
+          sub="Typical school year of serving days"
         />
         <StatCard
           label="Students covered"
@@ -128,16 +127,16 @@ export default function ResultsView({ result }: { result: OptimizeResponse }) {
           sub={`${pct(winner.covered_students / Math.max(result.total_enrolled, 1), 0)} of ${num(result.total_enrolled)} enrolled`}
         />
         <StatCard
-          label="Gain over doing nothing"
+          label="Gained by grouping"
           value={lift > 0 ? `+${usd(lift * SERVING_DAYS_PER_YEAR)}` : usd(0)}
-          sub="Per year, vs. every school on its own"
+          sub="Per year, vs. leaving every school on its own"
         />
       </Stack>
 
       {lift <= 0 && baseline && (
         <Alert severity="info" sx={{ mb: 3 }}>
-          No grouping beat the school-by-school baseline here. That is a real answer: in districts with
-          uniform ISP there is no surplus to move around.
+          No grouping did better than leaving every school on its own. That is a real answer, not a
+          failure: when need is about the same at every school there is no surplus to move around.
         </Alert>
       )}
 
@@ -145,7 +144,7 @@ export default function ResultsView({ result }: { result: OptimizeResponse }) {
         The recommended groups
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        This is the actionable output — which schools to file together.
+        These are the groups to file — which of your schools belong together on the application.
       </Typography>
 
       <Stack spacing={2} sx={{ mb: 4 }}>
@@ -166,22 +165,20 @@ export default function ResultsView({ result }: { result: OptimizeResponse }) {
                 {g.cep_eligible ? <CheckCircleIcon color="success" /> : <CancelIcon sx={{ color: "grey.500" }} />}
                 <Box sx={{ minWidth: 0 }}>
                   <Typography variant="h4">Group {gi + 1}</Typography>
-                  {/* Strategies name their groups inconsistently — Exhaustive uses bare
-                      integers, Binning uses ISP ranges. Show it, but never as the heading. */}
-                  <Typography variant="caption" color="text.secondary" noWrap component="div">
-                    API name: <code>{g.name}</code>
+                  <Typography variant="caption" color="text.secondary" component="div">
+                    {g.school_codes.length} school{g.school_codes.length === 1 ? "" : "s"}
                   </Typography>
                 </Box>
               </Stack>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                <Tooltip title="Pooled identified student percentage" arrow>
+                <Tooltip title="The group\u2019s combined identified student percentage" arrow>
                   <Chip size="small" label={`ISP ${pct(g.isp)}`} />
                 </Tooltip>
-                <Tooltip title="Share of meals paid at the free rate: min(ISP × 1.6, 100%)" arrow>
+                <Tooltip title="Share of this group\u2019s meals the USDA pays at the free rate" arrow>
                   <Chip
                     size="small"
                     color={g.free_rate === 1 ? "success" : g.free_rate > 0 ? "warning" : "default"}
-                    label={`Free rate ${pct(g.free_rate)}`}
+                    label={`${pct(g.free_rate)} of meals free`}
                   />
                 </Tooltip>
                 <Chip size="small" variant="outlined" label={`${usd(g.est_reimbursement)}/day`} />
@@ -190,7 +187,8 @@ export default function ResultsView({ result }: { result: OptimizeResponse }) {
 
             {!g.cep_eligible && (
               <Alert severity="warning" variant="outlined" sx={{ mb: 1.5, py: 0 }}>
-                Below the {pct(g.isp_threshold, 0)} threshold — this group earns nothing under CEP.
+                Below the {pct(g.isp_threshold, 0)} eligibility threshold, so this group earns nothing under
+                CEP. These schools could not be carried over the line by any grouping.
               </Alert>
             )}
 
@@ -201,8 +199,8 @@ export default function ResultsView({ result }: { result: OptimizeResponse }) {
                     <TableCell>School</TableCell>
                     <TableCell align="right">Enrolled</TableCell>
                     <TableCell align="right">Identified</TableCell>
-                    <TableCell align="right">Own ISP</TableCell>
-                    <TableCell align="right">Reimbursement / day</TableCell>
+                    <TableCell align="right">ISP on its own</TableCell>
+                    <TableCell align="right">Earns per day</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -227,24 +225,24 @@ export default function ResultsView({ result }: { result: OptimizeResponse }) {
       </Stack>
 
       <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
-        Every strategy that ran
+        Everything else it tried
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        The optimizer returns all of them, not just the winner — so the recommendation can be checked
-        rather than trusted.
+        Every grouping the optimizer considered, and what each one would have been worth — so you can
+        see how the recommendation compares instead of taking it on faith.
       </Typography>
       <TableContainer component={Paper} variant="outlined" sx={{ mb: 4, overflowX: "auto" }}>
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Strategy</TableCell>
+              <TableCell>Grouping</TableCell>
               <TableCell align="right">Groups</TableCell>
               <TableCell align="right">Students covered</TableCell>
               <TableCell align="right">Per day</TableCell>
-              <TableCell align="right">Gap to best</TableCell>
+              <TableCell align="right">Behind the best</TableCell>
               <TableCell sx={{ width: "22%" }}>
-                <Tooltip title="Scaled between the lowest- and highest-scoring strategy, so small differences stay visible" arrow>
-                  <span>Spread</span>
+                <Tooltip title="Each bar is scaled between the weakest and strongest result, so small differences stay visible" arrow>
+                  <span>How they compare</span>
                 </Tooltip>
               </TableCell>
             </TableRow>
@@ -261,21 +259,21 @@ export default function ResultsView({ result }: { result: OptimizeResponse }) {
                       <Stack direction="row" spacing={1} alignItems="center">
                         {isWinner && <EmojiEventsIcon fontSize="small" color="primary" />}
                         {s.optimal && (
-                          <Tooltip title={s.optimality_basis ?? "Proven optimal"} arrow>
+                          <Tooltip title="No other grouping beats this one" arrow>
                             <VerifiedIcon fontSize="small" color="success" />
                           </Tooltip>
                         )}
                         <Typography variant="body2" sx={{ fontWeight: isWinner ? 700 : 400 }}>
-                          {s.name.split("?")[0]}
+                          {strategyLabel(s.name)}
                         </Typography>
                         {s.groups.length === 0 && (
-                          <Tooltip title={s.optimality_basis ?? "This strategy did not produce a grouping"} arrow>
-                            <Chip size="small" label="did not run" variant="outlined" />
+                          <Tooltip title="This approach does not apply to a district of this size" arrow>
+                            <Chip size="small" label="not applicable" variant="outlined" />
                           </Tooltip>
                         )}
                         {s.groups.length > (result.max_groups ?? 10) && (
-                          <Tooltip title="Disqualified: more groups than max_groups allows" arrow>
-                            <Chip size="small" label="over cap" variant="outlined" />
+                          <Tooltip title="Set aside — it needs more groups than you are willing to administer" arrow>
+                            <Chip size="small" label="too many groups" variant="outlined" />
                           </Tooltip>
                         )}
                       </Stack>
@@ -310,33 +308,6 @@ export default function ResultsView({ result }: { result: OptimizeResponse }) {
         </Table>
       </TableContainer>
 
-      <Accordion variant="outlined" disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h5">Raw API response</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
-            Exactly what <code>POST /api/districts/optimize/</code> returned
-            {result.optimization_info ? ` in ${result.optimization_info.time.toFixed(2)}s` : ""}.
-          </Typography>
-          <Divider sx={{ mb: 1.5 }} />
-          <Box
-            component="pre"
-            sx={{
-              m: 0,
-              p: 2,
-              maxHeight: 480,
-              overflow: "auto",
-              bgcolor: "#1e2422",
-              color: "#e6f0ea",
-              borderRadius: 1,
-              fontSize: "0.75rem",
-            }}
-          >
-            {JSON.stringify(result, null, 2)}
-          </Box>
-        </AccordionDetails>
-      </Accordion>
     </Box>
   );
 }

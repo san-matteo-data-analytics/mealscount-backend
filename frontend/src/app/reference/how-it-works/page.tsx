@@ -13,20 +13,20 @@ import IspExplorer from "@/components/IspExplorer";
 
 const QUESTIONS = [
   {
-    q: "What problem is being solved?",
-    a: "Under the USDA's Community Eligibility Provision, a district can serve free meals to every student in a group of schools — no applications, no paperwork, no stigma. Whether a group qualifies depends on the pooled percentage of students already identified as needy. Districts get to choose the groups, and the choice is worth real money.",
+    q: "What problem is this solving?",
+    a: "Under the USDA's Community Eligibility Provision, a district can serve free breakfast and lunch to every student in a group of schools — no applications, no household forms, no unpaid meal debt, no stigma. Whether a group qualifies depends on the combined share of its students who are already identified as eligible. Districts get to choose the groups, and that choice is worth real money.",
   },
   {
-    q: "Why does grouping matter so much?",
-    a: "Funding saturates at 62.5% ISP. A school at 85% is leaving 22.5 points of surplus on the table, while a school at 40% is only partly funded and one at 20% gets nothing. Put them in the same group and the surplus is no longer wasted — it lifts the weaker school over the line.",
+    q: "Why does the grouping matter so much?",
+    a: "Funding stops climbing at 62.5%. A school at 85% is 22.5 points past the point where more need earns more money, while a school at 40% is only partly funded and one at 20% earns nothing at all. Put them in the same group and that wasted surplus lifts the weaker school over the line.",
   },
   {
-    q: "Why can't a person just do this by hand?",
-    a: "For three or four schools you can. The number of possible groupings is the Bell number of the school count: 5 schools give 52 options, 10 give 115,975, and 20 give more than 51 trillion. Meanwhile the objective is dollars, not percentages, so it depends on how many meals each school actually serves.",
+    q: "Why not just work it out by hand?",
+    a: "With three or four schools you can. The number of ways to group a district grows faster than almost anyone expects: 5 schools have 52 possible groupings, 10 schools have about 116,000, and 20 schools have more than 51 trillion. And the answer is measured in dollars, not percentages, so it also depends on how many meals each school actually serves.",
   },
   {
-    q: "What does the tool actually return?",
-    a: "A recommended set of groups, the estimated daily reimbursement, and the full result of every strategy it tried. The recommendation is auditable: you can see what the runner-up proposed and by how much it lost.",
+    q: "What do I get at the end?",
+    a: "A recommended set of groups — which schools to file together — the estimated reimbursement it earns, and what every other grouping the tool tried would have earned instead. You can see the runner-up and how much it lost by, so the recommendation is something you can check rather than something you have to trust.",
   },
 ];
 
@@ -35,8 +35,8 @@ export default function Home() {
     <Box>
       <PageHeader
         eyebrow="How it works"
-        title="School data in, a funding-optimal grouping out"
-        lede="MealsCount takes a district's schools, tries many different ways of grouping them into USDA Community Eligibility Provision groups, and returns the one that brings in the most federal meal reimbursement — proving it optimal where the district is small enough. This page explains what that means end to end."
+        title="Your school data in, the best grouping out"
+        lede="MealsCount takes your district's schools, tries many different ways of grouping them for the Community Eligibility Provision, and gives you back the one that brings in the most federal meal reimbursement. For most districts it can go further and tell you that no other grouping does better. This page walks through what that means."
       />
 
       <PipelineDiagram />
@@ -44,8 +44,8 @@ export default function Home() {
       <Alert severity="info" sx={{ mb: 5 }}>
         <AlertTitle>The short version</AlertTitle>
         Grouping high-poverty schools together with lower-poverty ones can qualify <em>both</em> for
-        free meals. The optimizer searches for the grouping that maximizes reimbursement — or, if you
-        prefer, the one that covers the most students.
+        free meals. The optimizer looks for the grouping that brings in the most money — or, if you
+        prefer, the one that feeds the most students.
       </Alert>
 
       <Box sx={{ mb: 5 }}>
@@ -53,7 +53,7 @@ export default function Home() {
       </Box>
 
       <Typography variant="h2" gutterBottom>
-        The four questions people ask first
+        The questions people ask first
       </Typography>
       <Stack spacing={2} sx={{ mb: 5 }}>
         {QUESTIONS.map((item) => (
@@ -84,8 +84,8 @@ export default function Home() {
             Run it on your district
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.9 }}>
-            Upload your own CSV or Excel file, or start from the downloadable template. The optimizer
-            posts to the same <code>/api/districts/optimize/</code> endpoint the production site uses.
+            Upload your own spreadsheet, or start from the downloadable example district — then edit
+            any number on screen to see how the answer moves.
           </Typography>
         </Box>
         <Button

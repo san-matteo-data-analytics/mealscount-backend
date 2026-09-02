@@ -27,10 +27,9 @@ import type { DistrictSettings, OptimizeEvent, OptimizeResponse, SchoolInput } f
 const EXACT_MAX_SCHOOLS = 16;
 
 const REFERENCE_LINKS = [
-  { href: "/reference/how-it-works", label: "How it works", hint: "Why grouping is worth optimizing" },
-  { href: "/reference/inputs", label: "Input reference", hint: "Every field, and the silent failures" },
-  { href: "/reference/outputs", label: "Output reference", hint: "How to read the response" },
-  { href: "/reference/strategies", label: "Strategies", hint: "Every algorithm, explained" },
+  { href: "/reference/how-it-works", label: "How it works", hint: "Why grouping is worth the trouble" },
+  { href: "/reference/inputs", label: "What you provide", hint: "Every column, and what it means" },
+  { href: "/reference/strategies", label: "How groupings are chosen", hint: "Every approach, in plain terms" },
 ];
 
 export default function OptimizerPage() {
@@ -155,7 +154,7 @@ export default function OptimizerPage() {
       <PageHeader
         eyebrow="MealsCount optimizer"
         title="Find the grouping that funds the most meals"
-        lede="Upload your district's schools, set the district options, and the optimizer will search for the best way to group them into USDA Community Eligibility Provision groups — then show you what it recommends, and what every alternative would have earned."
+        lede="Upload your district's schools, check the district settings, and the optimizer will work out the best way to group your schools for the Community Eligibility Provision — then show you what it recommends, and what every other grouping would have earned instead."
       />
 
       <Box sx={{ mb: 4 }}>
@@ -188,9 +187,10 @@ export default function OptimizerPage() {
 
           {!hasMeals && activeSchools.length > 0 && (
             <Alert severity="warning" sx={{ mb: 3 }}>
-              <AlertTitle>No meals-served data</AlertTitle>
-              Grouping will still be computed, but every reimbursement figure will come back as $0.
-              Fill in the breakfast and lunch columns to get dollar estimates.
+              <AlertTitle>No meal counts yet</AlertTitle>
+              Your schools will still be grouped, but every dollar figure will come back as $0. Fill
+              in the breakfasts and lunches columns in the table above to see what each grouping is
+              worth.
             </Alert>
           )}
 
@@ -215,12 +215,12 @@ export default function OptimizerPage() {
               <Box sx={{ flexGrow: 1 }}>
                 <Typography variant="h4">Ready to optimize</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {activeSchools.length} school{activeSchools.length === 1 ? "" : "s"} will be sent.{" "}
+                  {activeSchools.length} school{activeSchools.length === 1 ? "" : "s"} will be included.{" "}
                   {activeSchools.length === 0
-                    ? "Every school needs a code and a non-zero enrollment."
+                    ? "Every school needs a code and an enrollment count above zero."
                     : activeSchools.length <= EXACT_MAX_SCHOOLS
-                      ? "At this size the exact solver runs, so the result comes back proven optimal — and comes back immediately."
-                      : `Above ${EXACT_MAX_SCHOOLS} schools optimality cannot be proven by search, so the server adds simulated annealing and the LP solver. Those two do the searching: budget about a minute at 40 schools, more as the district grows. You will see each strategy land as it finishes.`}
+                      ? "At this size the tool can work out the single best grouping there is, and it comes back right away."
+                      : `Above ${EXACT_MAX_SCHOOLS} schools there are too many combinations to settle outright, so the tool searches instead. Allow about a minute at 40 schools, longer for a bigger district. Each grouping appears as it finishes.`}
                 </Typography>
               </Box>
               <Button
@@ -240,12 +240,12 @@ export default function OptimizerPage() {
 
       {error && (
         <Alert severity="error" sx={{ mb: 4 }} onClose={() => setError(null)}>
-          <AlertTitle>The optimization did not finish</AlertTitle>
+          <AlertTitle>The optimizer could not finish</AlertTitle>
           {error}
-          <Box component="pre" sx={{ mt: 1, fontSize: "0.78rem", whiteSpace: "pre-wrap" }}>
-            Start the API from the repo root: venv/bin/python server.py{"\n"}
-            Or point at production: MEALSCOUNT_API_ORIGIN=https://www.mealscount.com npm run dev
-          </Box>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            Your schools are still here — nothing was lost. Try running it again, and if it keeps
+            failing, let whoever set up MealsCount for your district know what this said.
+          </Typography>
         </Alert>
       )}
 
@@ -264,14 +264,14 @@ export default function OptimizerPage() {
         Reference
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, maxWidth: 760 }}>
-        Background on what the optimizer is doing and what the numbers mean. None of it is needed to
-        run an optimization.
+        Background on what the optimizer is doing and what the numbers mean. You do not need any of
+        it to run your district.
       </Typography>
       <Box
         sx={{
           display: "grid",
           gap: 2,
-          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" },
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", lg: "repeat(3, minmax(0, 1fr))" },
         }}
       >
         {REFERENCE_LINKS.map((r) => (

@@ -43,9 +43,9 @@ export function rateTier(stateCode: string): RateTier {
 
 /** One-line description of a tier, for UI that explains what the state picker does. */
 export const RATE_TIER_LABEL: Record<RateTier, string> = {
-  ak: "Alaska rate table — the highest of the three.",
-  hi: "Hawaii/territories rate table — above the contiguous 48.",
-  contiguous: "Contiguous-48 rate table.",
+  ak: "Alaska meal rates — the highest in the country.",
+  hi: "Hawaii and territories meal rates — higher than the lower 48.",
+  contiguous: "Standard lower-48 meal rates.",
 };
 
 /** SY23-24 rate table from CEPRate in strategies/base.py. */

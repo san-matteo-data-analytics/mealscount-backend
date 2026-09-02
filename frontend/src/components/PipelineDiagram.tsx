@@ -12,26 +12,26 @@ import TableChartIcon from "@mui/icons-material/TableChart";
 const STAGES = [
   {
     icon: <InputIcon />,
-    kicker: "INPUT",
-    title: "A district's schools",
-    body: "One row per school: how many students are enrolled, how many are already identified as needy, and how many meals get served each day. Plus a handful of district-level settings.",
-    items: ["total_enrolled", "total_eligible", "daily_lunch_served", "daily_breakfast_served", "state_code", "isp_threshold"],
+    kicker: "YOU PROVIDE",
+    title: "Your district's schools",
+    body: "One row per school: students enrolled, students already identified as eligible, and meals served on a typical day — plus a few district-wide settings.",
+    items: ["Enrollment", "Identified students", "Lunches per day", "Breakfasts per day", "State", "Eligibility threshold"],
     color: "primary.main",
   },
   {
     icon: <SettingsSuggestIcon />,
-    kicker: "PROCESS",
-    title: "A family of grouping strategies",
-    body: "Each strategy proposes a different way to partition the schools into CEP groups. Every proposal is scored end to end, then the highest-scoring one that respects max_groups wins. Up to 16 schools, Exact proves which grouping is best, so the answer is not just a good guess.",
-    items: ["Exact", "OneToOne", "OneGroup", "Pairs", "Spread", "Binning", "NYCMODA", "GreedyLP"],
+    kicker: "THE TOOL DOES",
+    title: "Tries many ways to group them",
+    body: "Each approach draws up the district differently — pairing schools, spreading surplus around, banding by need. Every version is priced out end to end, and the best one that stays within your group limit wins. Up to 16 schools, the tool can work out the single best grouping there is, so the answer is not just a good guess.",
+    items: ["Each school alone", "One district-wide group", "Paired schools", "Shared surplus", "Grouped by need band", "Best possible grouping"],
     color: "secondary.main",
   },
   {
     icon: <TableChartIcon />,
-    kicker: "OUTPUT",
+    kicker: "YOU GET BACK",
     title: "A recommended grouping, with the runners-up",
-    body: "The winning strategy's groups, the estimated daily reimbursement, and the full results of every other strategy so the recommendation can be checked rather than trusted.",
-    items: ["best_strategy", "est_reimbursement", "best_is_optimal", "groups[]", "strategies[]"],
+    body: "Which schools to file together, what it is estimated to earn per day and per year, how many students it covers, and what every other grouping would have earned instead.",
+    items: ["Recommended groups", "Estimated reimbursement", "Students covered", "Gain over doing nothing"],
     color: "success.main",
   },
 ];
@@ -76,7 +76,7 @@ export default function PipelineDiagram() {
                   label={i}
                   size="small"
                   variant="outlined"
-                  sx={{ fontFamily: "monospace", fontSize: "0.72rem" }}
+                  sx={{ fontSize: "0.72rem" }}
                 />
               ))}
             </Box>

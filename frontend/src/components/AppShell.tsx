@@ -21,7 +21,6 @@ import MenuIcon from "@mui/icons-material/Menu";
 import SchemaIcon from "@mui/icons-material/Schema";
 import InputIcon from "@mui/icons-material/Input";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import TableChartIcon from "@mui/icons-material/TableChart";
 import AltRouteIcon from "@mui/icons-material/AltRoute";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
 
@@ -30,15 +29,14 @@ const PRIMARY = {
   href: "/",
   label: "Optimizer",
   icon: <PlayArrowIcon />,
-  hint: "Upload schools and run it",
+  hint: "Upload your schools and run it",
 };
 
 /** Background reading. Deliberately subordinate to the optimizer. */
 const REFERENCE = [
   { href: "/reference/how-it-works", label: "How it works", icon: <SchemaIcon />, hint: "Why grouping pays" },
-  { href: "/reference/inputs", label: "Inputs", icon: <InputIcon />, hint: "Every field you supply" },
-  { href: "/reference/outputs", label: "Outputs", icon: <TableChartIcon />, hint: "Every field you get back" },
-  { href: "/reference/strategies", label: "Strategies", icon: <AltRouteIcon />, hint: "Every algorithm, explained" },
+  { href: "/reference/inputs", label: "What you provide", icon: <InputIcon />, hint: "Every column explained" },
+  { href: "/reference/strategies", label: "How groupings are chosen", icon: <AltRouteIcon />, hint: "Every approach, in plain terms" },
 ];
 
 const DRAWER_WIDTH = 268;
@@ -104,8 +102,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <Divider sx={{ my: 2 }} />
       <Box sx={{ px: 3 }}>
         <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-          This UI is a lens over the Python optimizer in <code>strategies/</code>. It calls the same
-          Flask API as production.
+          MealsCount helps school districts group their schools for the Community Eligibility
+          Provision so more students eat free.
         </Typography>
         <Button
           size="small"
@@ -143,7 +141,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               MealsCount
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
-              CEP grouping optimizer
+              CEP grouping for school districts
             </Typography>
           </Stack>
           {pathname !== "/" && (

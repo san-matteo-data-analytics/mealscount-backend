@@ -1,131 +1,120 @@
-/** Reference content: the strategy catalogue and the input/output field dictionaries. */
+/** Plain-language reference content: what each grouping approach does, and what goes into a file. */
 
 export interface StrategyDoc {
-  /** Key used in `strategies_to_run`, e.g. "NYCMODA?iterations=1000". */
+  /** Name the optimizer reports for this approach, used to look up the friendly label. */
   key: string;
-  /** Name the API returns in `strategies[].name`. */
   label: string;
   tagline: string;
   how: string;
   when: string;
   cost: "trivial" | "cheap" | "moderate" | "expensive";
-  params?: { name: string; meaning: string; default: string }[];
-  source: string;
   autoRun: "always" | "large districts only";
 }
+
+/** How long each approach takes, in words a person can plan around. */
+export const COST_LABEL: Record<StrategyDoc["cost"], string> = {
+  trivial: "instant",
+  cheap: "instant",
+  moderate: "a few seconds",
+  expensive: "can take minutes",
+};
 
 export const STRATEGIES: StrategyDoc[] = [
   {
     key: "OneToOne",
-    label: "OneToOne",
-    tagline: "Every school stands alone.",
-    how: "Each school becomes its own group, so its own ISP decides its own funding. No sharing happens at all.",
-    when: "The baseline. This is what a district gets by doing nothing clever, so it is the number every other strategy has to beat.",
+    label: "Each school on its own",
+    tagline: "What your district gets by not grouping at all.",
+    how: "Every school stands alone, so each one qualifies — or does not — on its own numbers. Nothing is shared between schools.",
+    when: "This is the starting point, not a recommendation. It is the number every other option has to beat, and the gap between it and the winner is what grouping is worth to you.",
     cost: "trivial",
-    source: "strategies/naive.py",
     autoRun: "always",
   },
   {
     key: "OneGroup",
-    label: "OneGroup",
-    tagline: "The whole district as a single group.",
-    how: "All schools are pooled into one group and the district's overall ISP sets one blended free rate for everyone.",
-    when: "Wins in districts with uniformly high poverty, where pooling clears 62.5% for everybody at once. Loses badly when a few low-ISP schools drag a strong district average down.",
+    label: "One district-wide group",
+    tagline: "Every school together in a single group.",
+    how: "All schools are pooled, and the district's overall share of identified students sets one free-meal rate for everybody.",
+    when: "Wins when need is high and fairly even across the district, so pooling carries every school over the line at once. Loses badly when a few lower-need schools pull the district average down.",
     cost: "trivial",
-    source: "strategies/naive.py",
     autoRun: "always",
   },
   {
     key: "Pairs",
-    label: "Pairs",
-    tagline: "Marry each strong school to the largest school it can carry.",
-    how: "Sorts schools by ISP, then walks the schools above 62.5% and matches each with the biggest under-threshold school it can absorb while keeping the pair above 62.5%. Leftovers repeat the process against the CEP threshold, and whatever still does not qualify is parked in a 'Not CEP Eligible' group.",
-    when: "A fast, intuitive answer that is often close to optimal in small districts, and easy to explain to a school board.",
+    label: "Paired schools",
+    tagline: "Match each high-need school with the largest school it can carry.",
+    how: "Sorts schools by need, then pairs each school above 62.5% with the biggest school below it that the pair can still support. Leftovers are matched again against the eligibility floor, and anything that still cannot qualify is set aside on its own.",
+    when: "Fast, and often close to the best answer in a smaller district. It is also the easiest grouping to explain to a school board or a superintendent.",
     cost: "cheap",
-    source: "strategies/pairs.py",
     autoRun: "always",
   },
   {
     key: "Spread",
-    label: "Spread",
-    tagline: "Spend each strong school's surplus ISP down to 62.5%.",
-    how: "Gives every above-62.5% school its own group, then keeps adding the next-highest low-ISP school to it until one more would push the group below 62.5%. Anything left over lands in a 'Remainder' group.",
-    when: "Extracts more value than Pairs when a single high-ISP school has enough surplus to carry several small schools rather than just one.",
+    label: "Shared surplus",
+    tagline: "Spend each high-need school's surplus down to 62.5%.",
+    how: "Gives every school above 62.5% its own group, then keeps adding the next-highest-need school to that group until one more would drop it below 62.5%. Whatever is left forms a final group.",
+    when: "Does better than paired schools when one high-need school has enough surplus to carry several small schools rather than just one.",
     cost: "cheap",
-    source: "strategies/spread.py",
     autoRun: "always",
   },
   {
     key: "Binning",
-    label: "Binning",
-    tagline: "Slice the district into descending ISP bands.",
-    how: "Builds a first bin of everything over 62.5%, then steps the threshold down in fixed-width increments, filling each bin from the top of the remaining schools until it drops below that band's threshold.",
-    when: "Useful in large districts where the ISP curve is smooth and there is no natural pairing.",
+    label: "Grouped by need band",
+    tagline: "Sort the district into bands, highest need first.",
+    how: "Puts everything above 62.5% into a first band, then steps the cutoff down a little at a time, filling each band from the top of the schools that are still unplaced.",
+    when: "Useful in large districts where need is spread smoothly across the schools and there is no obvious pairing to make.",
     cost: "cheap",
-    params: [{ name: "isp_width", meaning: "Width of each descending ISP band.", default: "0.02 (2%)" }],
-    source: "strategies/binning.py",
     autoRun: "always",
   },
   {
     key: "Exact",
-    label: "Exact",
-    tagline: "The provably best grouping, by dynamic programming over subsets.",
-    how: "Instead of enumerating every partition, it builds the answer up from subsets: the best split of a set is the best single group containing its lowest member, plus the best split of whatever is left. That costs 3^n work instead of Bell(n) — 43 million steps at 16 schools where enumeration would need 10.5 billion partitions. Two shortcuts skip the search entirely: a district already at or above 62.5% ISP is fully funded as one group and cannot be beaten, and a one-school district has only one grouping.",
-    when: "Any district up to 16 schools — about 88% of California districts. When it runs, the answer carries a proof, so the response sets optimal: true and the other search strategies are skipped as redundant.",
+    label: "Best possible grouping",
+    tagline: "The best grouping there is — not a guess.",
+    how: "Works out the best grouping by building it up from smaller pieces rather than testing arrangements one at a time, which is what makes a complete answer practical at all. Two shortcuts skip the work entirely: a district already above 62.5% overall is fully funded as one group, and a one-school district has only one option.",
+    when: "Any district of 16 schools or fewer, which covers about 88% of California districts. When this runs you get a guaranteed answer, and the other approaches are skipped because nothing can beat it.",
     cost: "moderate",
-    params: [
-      { name: "max_schools", meaning: "Largest district it will attempt before declining.", default: "16" },
-      { name: "evaluate_by", meaning: "Rank by dollars or by students covered.", default: "reimbursement" },
-      { name: "max_groups", meaning: "If the unconstrained optimum needs more groups than this, it re-solves subject to the cap.", default: "unset" },
-    ],
-    source: "strategies/exact.py",
     autoRun: "always",
   },
   {
     key: "Exhaustive",
-    label: "Exhaustive",
-    tagline: "Try literally every possible grouping.",
-    how: "Enumerates every set partition of the schools and keeps the best. Provably optimal but only tractable at small sizes: the Bell number for 10 schools is 115,975, for 15 it is 1.4 billion. Above its limit it silently falls back to OneToOne, which is easy to mistake for a real result.",
-    when: "Superseded by Exact, which returns the identical grouping over 100x faster and handles larger districts. Kept for cross-checking, and still used above the Exact ceiling where it degrades to OneToOne.",
+    label: "Every combination, one by one",
+    tagline: "The slow way to a complete answer.",
+    how: "Walks through every possible grouping in turn and keeps the best one. The count explodes quickly: 10 schools have about 116,000 arrangements and 15 schools have 1.4 billion. Past its limit it quietly falls back to leaving every school on its own.",
+    when: "Kept only as a cross-check. The best-possible grouping reaches the same answer far faster and handles larger districts.",
     cost: "expensive",
-    params: [
-      { name: "max_count", meaning: "Largest district it will actually enumerate before falling back.", default: "10" },
-      { name: "evaluate_by", meaning: "Whether to rank partitions by dollars or by students covered.", default: "reimbursement" },
-    ],
-    source: "strategies/exhaustive.py",
     autoRun: "large districts only",
   },
   {
     key: "NYCMODA",
-    label: "NYCMODA — simulated annealing",
-    tagline: "Randomized search, restarted many times.",
-    how: "Starts from random groupings and repeatedly moves schools between groups, keeping changes that improve the score. Runs many independent fresh starts to avoid getting stuck in a local optimum. Seeded, so the same inputs give the same answer. Note it only anneals above 10 schools — at or below that it returns a single group unchanged.",
-    when: "Districts above the Exact ceiling, where optimality cannot be proven. This is the workhorse for large districts. Below the ceiling it is skipped, since it cannot beat a proven optimum.",
+    label: "Guided search",
+    tagline: "Try, adjust, and repeat — thousands of times.",
+    how: "Starts from a random grouping, moves schools between groups, and keeps the changes that improve the result. It restarts from many different starting points so it does not settle for a merely decent answer. The same district always produces the same result.",
+    when: "Districts too large to settle outright. This is the workhorse above 16 schools, and it is skipped below that, where a guaranteed answer is available instead.",
     cost: "expensive",
-    params: [
-      { name: "fresh_starts", meaning: "Independent restarts from a new random grouping.", default: "100 (sync) / 50 (async)" },
-      { name: "iterations", meaning: "Moves attempted per start.", default: "2000 (sync) / 1000 (async)" },
-      { name: "ngroups", meaning: "Upper bound on groups it will create.", default: "max_groups" },
-      { name: "evaluate_by", meaning: "Objective: reimbursement or coverage.", default: "reimbursement" },
-    ],
-    source: "strategies/nyc_moda_simulated_annealing.py",
     autoRun: "large districts only",
   },
   {
     key: "GreedyLP",
-    label: "GreedyLP",
-    tagline: "Linear programming, applied greedily.",
-    how: "Uses an OR-Tools solver to carve off the best group it can find, removes those schools, and repeats on what remains.",
-    when: "Large districts, as a structured counterweight to the randomness of simulated annealing. Measured on small districts against the proven optimum, it is the strongest of the heuristics. Skipped below the Exact ceiling.",
+    label: "Solver search",
+    tagline: "Carve off the strongest group, then start again.",
+    how: "Uses a mathematical solver to find the single best group it can, sets those schools aside, and repeats on the schools that remain.",
+    when: "Large districts, as a steadier counterweight to the randomness of the guided search. Measured against guaranteed answers on small districts, it is the strongest of the search approaches.",
     cost: "moderate",
-    source: "strategies/linear_solver.py",
     autoRun: "large districts only",
   },
 ];
 
+/** Friendly name for a grouping approach, for results the optimizer reports by its internal name. */
+const LABEL_BY_KEY = new Map(STRATEGIES.map((s) => [s.key, s.label]));
+
+export function strategyLabel(name: string): string {
+  const key = name.split("?")[0];
+  return LABEL_BY_KEY.get(key) ?? key;
+}
+
 export interface FieldDoc {
-  name: string;
-  type: string;
+  label: string;
+  /** Header to use in a spreadsheet, where the field comes from a file. */
+  column?: string;
   required?: boolean;
   meaning: string;
   gotcha?: string;
@@ -133,91 +122,91 @@ export interface FieldDoc {
 
 export const SCHOOL_INPUT_FIELDS: FieldDoc[] = [
   {
-    name: "school_code",
-    type: "string",
+    label: "School code",
+    column: "school_code",
     required: true,
-    meaning: "Unique identifier for the school within the district. Group memberships in the output are reported by this code.",
-    gotcha: "A row with no school_code is skipped without warning — no error, it just vanishes from the results.",
+    meaning:
+      "The code that identifies this school. Use whatever code your state or district already uses — it is how each school is named in your results.",
+    gotcha: "A row with no school code is dropped. The upload here lists any dropped rows instead of losing them quietly.",
   },
-  { name: "school_name", type: "string", meaning: "Display name. Defaults to \"School N\" if omitted." },
-  { name: "school_type", type: "string", meaning: "Free-text label (Elementary, Middle, …). Carried through to output; does not affect the math." },
+  { label: "School name", column: "school_name", meaning: "What the school is called. Used for labeling only." },
   {
-    name: "total_enrolled",
-    type: "integer",
-    required: true,
-    meaning: "Students enrolled. The denominator of ISP.",
-    gotcha: "A row with 0 or blank total_enrolled is skipped without warning, same as a missing code.",
+    label: "School type",
+    column: "school_type",
+    meaning: "Elementary, Middle, High, and so on. Carried through to your results; it does not change any of the math.",
   },
   {
-    name: "total_eligible",
-    type: "integer",
+    label: "Students enrolled",
+    column: "total_enrolled",
     required: true,
-    meaning: "Identified students — directly certified, plus foster, homeless, migrant, and Head Start children. The numerator of ISP.",
-    gotcha: "Silently clamped down to total_enrolled if you send a larger number.",
+    meaning: "Total students enrolled at the school.",
+    gotcha: "A row with blank or zero enrollment is dropped, the same as a row with no school code.",
   },
   {
-    name: "daily_breakfast_served",
-    type: "integer",
-    meaning: "Average daily breakfasts served. Multiplied by the per-meal rate to get dollars.",
-    gotcha: "Leave this at 0 and every reimbursement in the output is 0 too — the grouping still computes, but there is nothing to compare.",
+    label: "Identified students",
+    column: "total_eligible",
+    required: true,
+    meaning:
+      "Students already identified as eligible without an application: directly certified through SNAP, TANF or Medicaid, plus foster, homeless, migrant, and Head Start students.",
+    gotcha: "If this is larger than enrollment it is reduced to match enrollment. Worth checking if a school's percentage looks wrong.",
   },
-  { name: "daily_lunch_served", type: "integer", meaning: "Average daily lunches served. The dominant term in the dollar figure." },
-  { name: "severe_need", type: "boolean", meaning: "Qualifies the school for the higher severe-need free breakfast rate ($2.73 vs $2.28 in the contiguous 48)." },
-  { name: "active", type: "boolean", meaning: "Set false to leave a school out of grouping entirely. It is still echoed in the output's schools list, just never placed in a group." },
+  {
+    label: "Breakfasts served per day",
+    column: "daily_breakfast_served",
+    meaning: "Average number of breakfasts served on a typical day. Together with lunches, this is what turns eligibility into dollars.",
+    gotcha: "Leave breakfasts and lunches at zero and every dollar figure comes back as $0. The grouping still works, but there is nothing to compare.",
+  },
+  {
+    label: "Lunches served per day",
+    column: "daily_lunch_served",
+    meaning: "Average number of lunches served on a typical day. This drives most of the dollar estimate.",
+  },
+  {
+    label: "Severe need breakfast",
+    column: "severe_need",
+    meaning:
+      "Whether the school qualifies for the higher severe-need breakfast rate ($2.73 instead of $2.28 in the lower 48). Use TRUE or FALSE in a spreadsheet.",
+  },
+  {
+    label: "Include this school",
+    column: "active",
+    meaning:
+      "Leave blank or TRUE for schools you want grouped. Set it to FALSE to hold a school out of the grouping — one that is already covered another way, for instance.",
+  },
 ];
 
 export const DISTRICT_INPUT_FIELDS: FieldDoc[] = [
-  { name: "name", type: "string", meaning: "District name, for labeling only." },
-  { name: "code", type: "string", meaning: "District identifier, for labeling only." },
+  { label: "District name", meaning: "Appears on your results. Nothing else uses it." },
   {
-    name: "state_code",
-    type: "string",
+    label: "State",
     required: true,
-    meaning: "Two-letter lowercase state code. Selects the USDA rate table — Alaska and Hawaii/PR/GU/VI pay materially more than the contiguous 48.",
+    meaning:
+      "Selects the USDA reimbursement rates. Alaska, Hawaii and the territories are paid noticeably more per meal than the lower 48.",
   },
   {
-    name: "isp_threshold",
-    type: "float",
-    meaning: "Minimum ISP for a group to earn anything at all. 0.25 since October 2023 (it was 0.40 before).",
-    gotcha: "Lowering this is a policy question, not a modeling trick — it changes which groups are legally eligible.",
-  },
-  { name: "sfa_certified", type: "boolean", meaning: "School Food Authority is certified for the performance-based 7¢ per-lunch add-on." },
-  {
-    name: "hhfka_sixty",
-    type: '"less" | "more" | "max"',
-    meaning: "Which Healthy, Hunger-Free Kids Act §60 paid-lunch-equity band the district falls in. Shifts every per-meal rate slightly.",
+    label: "Eligibility threshold",
+    meaning:
+      "The lowest identified student percentage a group can have and still earn anything under CEP. The federal floor has been 25% since October 2023; before that it was 40%.",
+    gotcha: "Changing this models a different rule — it does not find you more money. Leave it at 25% unless you are testing a what-if.",
   },
   {
-    name: "max_groups",
-    type: "integer",
-    meaning: "Any strategy producing more groups than this is disqualified during ranking. Also caps the group count the annealing search will try.",
-    gotcha: "Set it too low and good strategies get thrown out; set it high and you may get an unmanageable number of groups to administer.",
+    label: "School food authority certified",
+    meaning: "Turn on if your SFA is certified for the performance-based extra 7¢ per lunch.",
   },
   {
-    name: "evaluate_by",
-    type: '"reimbursement" | "coverage"',
-    meaning: "How the winner is chosen: most dollars, or most students in a CEP-eligible group. These do not always agree.",
+    label: "Paid lunch equity band",
+    meaning:
+      "Which paid lunch equity band your district falls in, set under the Healthy, Hunger-Free Kids Act. It shifts every per-meal rate slightly.",
   },
-];
-
-export const OUTPUT_FIELDS: FieldDoc[] = [
-  { name: "best_strategy", type: "string", meaning: "Name of the winning strategy — the recommendation." },
   {
-    name: "best_is_optimal",
-    type: "boolean",
-    meaning: "True when the recommendation is proven optimal rather than merely the best of what was tried. Set by the Exact strategy for districts up to 16 schools, and for any district already at or above 62.5% ISP.",
+    label: "Maximum number of groups",
+    meaning:
+      "The most groups you are willing to actually administer. Any grouping that needs more than this is set aside before a winner is picked.",
+    gotcha: "Set it too low and good options get discarded; set it too high and you may end up with more groups than your office can manage.",
   },
-  { name: "optimality_basis", type: "string | null", meaning: "Why the result is (or is not) proven — e.g. \"proven optimal over all partitions of 12 schools\"." },
-  { name: "est_reimbursement", type: "float", meaning: "Estimated reimbursement under the winning strategy, in dollars per serving day." },
-  { name: "best_index", type: "integer | null", meaning: "Index of the winner inside the strategies array. Null if every strategy was disqualified — for instance when all of them exceeded max_groups." },
-  { name: "overall_isp", type: "float", meaning: "District-wide identified student percentage, ignoring grouping." },
-  { name: "strategies[]", type: "array", meaning: "Every strategy that ran, with its full grouping. This is what makes the result auditable rather than a black box." },
-  { name: "strategies[].groups[]", type: "array", meaning: "The actual grouping proposed: which school codes go together." },
-  { name: "groups[].isp", type: "float", meaning: "Pooled ISP for the group: sum(eligible) / sum(enrolled)." },
-  { name: "groups[].free_rate", type: "float", meaning: "Share of meals reimbursed at the free rate: min(isp × 1.6, 1), or 0 below the threshold." },
-  { name: "groups[].cep_eligible", type: "boolean", meaning: "Whether this group cleared the threshold at all." },
-  { name: "groups[].school_reimbursements", type: "[code, dollars][]", meaning: "Per-school dollar breakdown inside the group." },
-  { name: "groups[].free_rate_students", type: "integer", meaning: "Students in a CEP-eligible group — the 'coverage' number, equal to total_enrolled when eligible and 0 otherwise." },
-  { name: "schools[]", type: "array", meaning: "Every school as parsed, including the computed isp and the rates table applied to it. Check this first when a school seems to be missing." },
-  { name: "optimization_info.time", type: "float", meaning: "Wall-clock seconds the optimization took." },
+  {
+    label: "Optimize for",
+    meaning:
+      "Whether the best grouping is the one that brings in the most money, or the one that covers the most students. The two do not always point to the same answer.",
+  },
 ];

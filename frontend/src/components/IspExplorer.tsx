@@ -21,7 +21,7 @@ function Zones({ threshold }: { threshold: number }) {
   const zones = [
     { width: threshold, color: "#e0e0e0", label: "No CEP funding" },
     { width: FULL_FUNDING_ISP - threshold, color: "#f7c59f", label: "Partial funding" },
-    { width: 1 - FULL_FUNDING_ISP, color: "#8dc3a7", label: "Fully funded — surplus wasted" },
+    { width: 1 - FULL_FUNDING_ISP, color: "#8dc3a7", label: "Fully funded — need to spare" },
   ];
   return (
     <Box sx={{ display: "flex", height: 26, borderRadius: 1, overflow: "hidden" }}>
@@ -96,11 +96,11 @@ export default function IspExplorer() {
   return (
     <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
       <Typography variant="h3" gutterBottom>
-        The one formula that drives everything
+        The one number that drives everything
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        A group&apos;s <strong>Identified Student Percentage</strong> decides what share of its meals the
-        USDA pays at the free rate. Drag the sliders to see why grouping is worth optimizing.
+        A group&apos;s <strong>identified student percentage</strong> decides what share of its meals the
+        USDA pays for at the free rate. Move the sliders to see why the grouping matters.
       </Typography>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={4}>
@@ -147,7 +147,7 @@ export default function IspExplorer() {
             onChange={(_, v) => setThreshold(v as number)}
             valueLabelFormat={(v) => pct(v, 0)}
             valueLabelDisplay="auto"
-            aria-label="ISP threshold"
+            aria-label="Eligibility threshold"
           />
         </Box>
 
@@ -155,19 +155,23 @@ export default function IspExplorer() {
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack spacing={1.5}>
-            <Step n={1} label="ISP = identified ÷ enrolled" value={pct(isp, 1)} />
+            <Step n={1} label="Identified students, as a share of enrollment" value={pct(isp, 1)} />
             <Step
               n={2}
-              label={belowThreshold ? `Below the ${pct(threshold, 0)} threshold → nothing` : "ISP × 1.6, capped at 100%"}
+              label={
+                belowThreshold
+                  ? `Below the ${pct(threshold, 0)} threshold, so nothing is paid at the free rate`
+                  : "Meals paid at the free rate"
+              }
               value={pct(freeRate, 1)}
               muted={belowThreshold}
             />
-            <Step n={3} label="Remaining meals, at the low paid rate" value={pct(paid, 1)} muted={belowThreshold} />
+            <Step n={3} label="The rest, at the much lower paid rate" value={pct(paid, 1)} muted={belowThreshold} />
           </Stack>
 
           <Box sx={{ mt: 3 }}>
             <Typography variant="overline" color="text.secondary">
-              Where this group sits
+              Where this group lands
             </Typography>
             <Box sx={{ position: "relative", mt: 0.5 }}>
               <Zones threshold={threshold} />
@@ -192,19 +196,19 @@ export default function IspExplorer() {
           <Box sx={{ mt: 2.5, p: 1.75, borderRadius: 1, bgcolor: "action.hover" }}>
             {belowThreshold ? (
               <Typography variant="body2">
-                This group earns <strong>nothing</strong> under CEP. Grouped with a higher-ISP school it could
-                cross the line — that is the entire reason MealsCount exists.
+                This group earns <strong>nothing</strong> under CEP. Put it together with a higher-need
+                school and it could cross the line — which is the whole reason MealsCount exists.
               </Typography>
             ) : saturated ? (
               <Typography variant="body2">
-                Already fully funded. Every point of ISP above <strong>62.5%</strong> is{" "}
-                <strong>{pct(wasted, 1)} of surplus doing nothing</strong> — surplus that could be carrying a
-                weaker school if the two were grouped together.
+                Already fully funded. Everything above <strong>62.5%</strong> earns no extra money, so{" "}
+                <strong>{pct(wasted, 1)} of need is doing nothing here</strong> — need that could be
+                carrying a weaker school if the two were grouped together.
               </Typography>
             ) : (
               <Typography variant="body2">
-                Partially funded: {pct(freeRate, 1)} of meals at the free rate, the rest at the much lower paid
-                rate. Reaching <strong>62.5%</strong> ISP would make the whole group free.
+                Partly funded: {pct(freeRate, 1)} of meals at the free rate, the rest at the much lower
+                paid rate. Reaching <strong>62.5%</strong> would make every meal in the group free.
               </Typography>
             )}
           </Box>
