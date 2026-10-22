@@ -209,3 +209,93 @@ class ExactStrategyTestCase(unittest.TestCase,CEPTestMixin):
             CEPGroup(district,"g%i"%i,list(g.schools)).est_reimbursement()
             for i,g in enumerate(exact.groups))
         self.assertAlmostEqual(exact.reimbursement,rescored,places=2)
+
+
+class IntervalDPStrategyTestCase(unittest.TestCase,CEPTestMixin):
+    '''IntervalDP is a restricted search, so what matters is that it never lies:
+    it must partition every school once, report dollars that survive re-scoring,
+    and never claim to beat the provable optimum.
+    '''
+
+    def mk_district(self,specs,**kwargs):
+        d = CEPDistrict(name="DP District",code="DP",**kwargs)
+        for i,(isp,enrolled,bkfst,lunch) in enumerate(specs):
+            d.add_school(self.mk_school(d,str(i),isp,enrolled,bkfst,lunch))
+        return d
+
+    def run_strategy(self,district,spec):
+        Klass,params,name = parse_strategy(spec)
+        s = Klass(params,name)
+        district.strategies = [s]
+        district.run_strategies()
+        return s
+
+    def random_specs(self,rnd,n):
+        '''Meals scale with enrollment -- a school cannot serve more lunches than
+        it has students, and the contiguity assumption is only meaningful on
+        physically possible data.'''
+        specs = []
+        for _ in range(n):
+            enrolled = rnd.randint(100,1200)
+            specs.append((rnd.uniform(0.05,0.62), enrolled,
+                          round(enrolled*0.2852*rnd.uniform(0.7,1.3)),
+                          round(enrolled*0.5998*rnd.uniform(0.7,1.3))))
+        return specs
+
+    def test_never_beats_the_proven_optimum(self):
+        '''A restricted search that outscores Exact would mean one of them is wrong.'''
+        rnd = random.Random(2024)
+        for _ in range(25):
+            specs = self.random_specs(rnd,rnd.randint(2,9))
+            exact = self.run_strategy(self.mk_district(specs),"Exact")
+            dp = self.run_strategy(self.mk_district(specs),"IntervalDP")
+            self.assertLessEqual(dp.reimbursement,exact.reimbursement + 0.02)
+
+    def test_partitions_every_school_once(self):
+        district = self.mk_district([(0.9,500,100,300),(0.5,800,200,500),
+                                     (0.2,300,50,150),(0.1,200,40,120)])
+        dp = self.run_strategy(district,"IntervalDP")
+        placed = sorted(s.code for g in dp.groups for s in g.schools)
+        self.assertEqual(placed,sorted(s.code for s in district.schools))
+
+    def test_reported_value_matches_rescoring(self):
+        '''The DP scores blocks itself, so it must agree with CEPGroup to the cent.'''
+        district = self.mk_district([(0.85,520,148,312),(0.4,450,128,270),
+                                     (0.22,380,108,228),(0.5,600,171,360)])
+        dp = self.run_strategy(district,"IntervalDP")
+        rescored = sum(
+            CEPGroup(district,"g%i"%i,list(g.schools)).est_reimbursement()
+            for i,g in enumerate(dp.groups))
+        self.assertAlmostEqual(dp.reimbursement,rescored,places=2)
+
+    def test_high_isp_shortcut_is_one_group(self):
+        district = self.mk_district([(0.8,500,143,300),(0.9,700,200,420)])
+        dp = self.run_strategy(district,"IntervalDP")
+        self.assertEqual(len(dp.groups),1)
+        self.assertTrue(dp.optimal)
+
+    def test_respects_max_groups(self):
+        specs = [(0.9,400,114,240),(0.75,500,143,300),
+                 (0.15,600,171,360),(0.1,300,86,180)]
+        dp = self.run_strategy(self.mk_district(specs),"IntervalDP?max_groups=2")
+        self.assertIsNotNone(dp.groups)
+        self.assertLessEqual(len(dp.groups),2)
+
+    def test_max_block_still_covers_every_school(self):
+        '''Capping block width bounds run time on huge districts; it must not
+        drop schools on the floor.'''
+        rnd = random.Random(7)
+        district = self.mk_district(self.random_specs(rnd,20))
+        dp = self.run_strategy(district,"IntervalDP?max_block=3")
+        placed = sorted(s.code for g in dp.groups for s in g.schools)
+        self.assertEqual(placed,sorted(s.code for s in district.schools))
+        self.assertTrue(all(len(g.schools) <= 3 for g in dp.groups))
+
+    def test_scales_past_the_exact_ceiling(self):
+        '''The whole point: it answers where Exact declines to.'''
+        rnd = random.Random(11)
+        district = self.mk_district(self.random_specs(rnd,120))
+        dp = self.run_strategy(district,"IntervalDP")
+        self.assertEqual(sum(len(g.schools) for g in dp.groups),120)
+        self.assertFalse(dp.optimal)  # contiguous-optimal only, and it says so
+        self.assertIn("contiguous",dp.optimality_basis)

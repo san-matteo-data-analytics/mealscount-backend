@@ -34,6 +34,31 @@ This environment can be created with a virtual environment using the jupyter_req
     $> pip install -r jupyter_requirements.txt
     $> jupyter notebook
 
+# Comparing Optimization Strategies
+
+The grouping strategies live in `strategies/` and are registered in
+`strategies/__init__.py`. Every strategy that has ever shipped is still
+registered, so a new approach can be measured against the ones it is meant to
+replace rather than quietly swapped in for them.
+
+`compare_strategies.py` scores a set of strategies on the same districts and
+reports each as a fraction of the best result anyone found:
+
+    $> python compare_strategies.py data/ca/latest.csv --min-schools 11 --max-schools 16
+
+Below 17 schools the `Exact` strategy proves the optimum, so those fractions are
+true optimality ratios. Above that, no strategy here can prove optimality and the
+fractions are only relative to the best result found.
+
+One caveat worth understanding before trusting the output: reimbursement is
+driven by *meals served*, and the CSVs in `data/` carry enrollment and
+eligibility but no meal counts. When meal columns are absent the tool models them
+from enrollment using the USDA participation estimates in `strategies/base.py`.
+That is a model, not measurement. `--jitter` controls how much per-school
+variation it introduces, and the ranking is genuinely sensitive to it, because a
+school whose meals do not track its size is exactly the case that breaks the
+assumption `IntervalDP` relies on. Use your own meal data where you have it.
+
 # Example Usage - Frontend Dev
 
 If you are just looking to work on the Vue.js front-end, and don't want / know how to setup a python environment, you can just utilize the node toolset and run "npm run start". This will automatically proxy all data feeds to https://www.mealscount.com/, and let you adjust your local Vue.js environment.
@@ -117,6 +142,48 @@ raise it with care. Above the ceiling `Exact` declines rather than guessing, and
 falls back to the heuristics with `best_is_optimal: false`.
 
 Parameters: `max_schools`, `evaluate_by` (`reimbursement` or `coverage`), `max_groups`.
+
+## IntervalDP (`strategies/interval_dp.py`)
+
+`IntervalDP` sorts the schools by ISP and finds the best set of cuts along that
+line, so every group is a run of adjacent schools:
+
+    dp[i] = max over j > i of  value(schools[i:j]) + dp[j]
+
+That is O(n^2) rather than O(3^n), so it answers where `Exact` declines: San Diego
+Unified (194 schools) takes **0.06s**. It is provably optimal *within* the
+contiguous class, which is not the same as optimal -- it says so in
+`optimality_basis`, and `optimal` stays false above the 62.5% shortcut.
+
+It is **not** part of the default strategy set, because measuring it honestly did
+not justify auto-running it:
+
+| districts | IntervalDP vs best-found | improved the returned answer |
+| --------- | ------------------------ | ---------------------------- |
+| 11-16 schools | 0.981 mean | -- (`Exact` proves the optimum here) |
+| 17-60 schools | 0.977 mean | **0 of 12** |
+| 61+ schools   | 0.994 on the one district measured | **0 of 1** |
+
+On every district tested, `NYCMODA` or `GreedyLP` already reached a grouping at
+least as good, so adding `IntervalDP` to the ensemble would cost a strategy card
+and payload for no gain. What it does buy is speed: ~98% of the ensemble result
+in ~0.00s where the ensemble itself takes 10s or more. That makes it a candidate
+*fallback* if very large districts ever need a time budget -- a separate decision
+from the default set, and not one this change makes.
+
+Its accuracy depends on meal counts tracking enrollment, because that is what
+makes a group's value monotone in ISP order. Measured against `Exact` on
+synthetic districts:
+
+| meal counts | IntervalDP mean | worst |
+| ----------- | --------------- | ----- |
+| exactly proportional to enrollment | 0.997 | 0.888 |
+| +/-30% per-school variation | 0.991 | 0.832 |
+| drawn independently of enrollment | 0.960 | 0.262 |
+
+Parameters: `evaluate_by` (`reimbursement` or `coverage`), `max_groups`,
+`max_block` (caps block width to bound run time; 0 means unlimited below 120
+schools).
 
 ## How much do the heuristics actually miss?
 

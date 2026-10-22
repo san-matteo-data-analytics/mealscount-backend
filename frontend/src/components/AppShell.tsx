@@ -22,6 +22,7 @@ import SchemaIcon from "@mui/icons-material/Schema";
 import InputIcon from "@mui/icons-material/Input";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import AltRouteIcon from "@mui/icons-material/AltRoute";
+import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
 
 /** The tool itself. */
@@ -34,6 +35,7 @@ const PRIMARY = {
 
 /** Background reading. Deliberately subordinate to the optimizer. */
 const REFERENCE = [
+  { href: "/compare", label: "Old vs new", icon: <CompareArrowsIcon />, hint: "What the changes bought" },
   { href: "/reference/how-it-works", label: "How it works", icon: <SchemaIcon />, hint: "Why grouping pays" },
   { href: "/reference/inputs", label: "What you provide", icon: <InputIcon />, hint: "Every column explained" },
   { href: "/reference/strategies", label: "How groupings are chosen", icon: <AltRouteIcon />, hint: "Every approach, in plain terms" },

@@ -135,9 +135,17 @@ class NYCMODASimulatedAnnealingCEPStrategy(BaseCEPStrategy):
                 elif start_f == step_f and step_r > start_r:
                     passing = True
                 
-            # undo if we have gone down, and return False
-            # given that the different in change in reimbursement wildly varies amongst districts
-            if not passing or (use_annealing and random() < np.exp( step_temp/T)):
+            # Undo if we have gone down, and return False.
+            # Simulated annealing means sometimes KEEPING a move that made things
+            # worse, so we can escape a local optimum. The previous version had
+            # this clause on the undo branch, which could only ever reject an
+            # improving move -- the opposite of annealing -- so the strategy was
+            # randomized hill climbing with restarts. With annealing off (the
+            # default) behaviour is unchanged either way.
+            if not passing and use_annealing and random() < np.exp(step_temp/T):
+                passing = True  # accept the downhill step this once
+
+            if not passing:
                 s = g2.schools.pop()
                 g1.schools.append(s)
                 g1.calculate()

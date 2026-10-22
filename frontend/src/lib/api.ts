@@ -1,8 +1,9 @@
-import type { OptimizeEvent, OptimizeRequest, OptimizeResponse } from "./types";
+import type { CompareResponse, OptimizeEvent, OptimizeRequest, OptimizeResponse } from "./types";
 import type { StateOption } from "./states";
 
 const STREAM_URL = "/api/districts/optimize-stream/";
 const BLOCKING_URL = "/api/districts/optimize/";
+const COMPARE_URL = "/api/districts/compare/";
 
 export interface OptimizeOptions {
   /** Abort the run. The server keeps working, but the UI stops waiting. */
@@ -11,6 +12,40 @@ export interface OptimizeOptions {
   onEvent?: (event: OptimizeEvent) => void;
   /** Called when the origin has no streaming endpoint and no progress is coming. */
   onFallback?: () => void;
+}
+
+/**
+ * Runs the same district through both the main-branch optimizer and this one.
+ *
+ * Deliberately not streamed. It is slower than /optimize/ because the baseline
+ * side runs the strategies the current default set exists to avoid, and there
+ * is no partial answer worth showing — the comparison only means anything once
+ * both sides have finished.
+ */
+export async function compareDistrict(
+  req: OptimizeRequest,
+  signal?: AbortSignal,
+): Promise<CompareResponse> {
+  let res: Response;
+  try {
+    res = await fetch(COMPARE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req),
+      signal,
+    });
+  } catch (e) {
+    throw unreachable(e);
+  }
+  if (res.status === 404 || res.status === 405) {
+    throw new Error(
+      "This origin has no comparison endpoint. It is only available when running the local server.",
+    );
+  }
+  if (!res.ok) throw statusError(res);
+  const body = (await res.json()) as CompareResponse;
+  if (body.error) throw new Error(body.error);
+  return body;
 }
 
 /** True when a thrown value is the caller's own abort rather than a failure. */

@@ -8,8 +8,15 @@ export interface StrategyDoc {
   how: string;
   when: string;
   cost: "trivial" | "cheap" | "moderate" | "expensive";
-  autoRun: "always" | "large districts only";
+  autoRun: "always" | "large districts only" | "on request";
 }
+
+/** How the optimizer decides whether to run an approach, in words a person can plan around. */
+export const AUTORUN_LABEL: Record<StrategyDoc["autoRun"], string> = {
+  always: "tried every time",
+  "large districts only": "large districts only",
+  "on request": "only when asked for",
+};
 
 /** How long each approach takes, in words a person can plan around. */
 export const COST_LABEL: Record<StrategyDoc["cost"], string> = {
@@ -64,6 +71,15 @@ export const STRATEGIES: StrategyDoc[] = [
     when: "Useful in large districts where need is spread smoothly across the schools and there is no obvious pairing to make.",
     cost: "cheap",
     autoRun: "always",
+  },
+  {
+    key: "IntervalDP",
+    label: "Need-ordered blocks",
+    tagline: "Line the schools up by need and find the best places to cut.",
+    how: "Sorts every school by its share of identified students, then works out the best possible set of cuts along that line, where each group is a run of schools next to each other. Because it only has to choose where to cut rather than which schools go together, it stays fast no matter how large the district is.",
+    when: "Large districts, where a guaranteed answer is out of reach. It gets close to the best grouping at almost no cost, but on the districts we have measured the slower searches always matched or beat it, so it is not run automatically. It does less well when a school's meal counts do not track its size.",
+    cost: "cheap",
+    autoRun: "on request",
   },
   {
     key: "Exact",

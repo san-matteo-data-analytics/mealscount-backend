@@ -140,6 +140,55 @@ export interface OptimizeResponse {
 }
 
 /**
+ * One side of a baseline-vs-improved comparison. Same shape as OptimizeResponse
+ * minus the schools (identical on both sides, so sent once at the top level),
+ * plus what it cost to get there.
+ */
+export interface CompareSide extends Omit<OptimizeResponse, "schools"> {
+  /** Wall-clock seconds this configuration took. */
+  seconds: number;
+  /** The exact strategy specs this side ran, in order. */
+  strategies_run: string[];
+  /** Groups in the winning grouping. */
+  group_count: number;
+}
+
+export interface CompareDelta {
+  /** Improved minus baseline, in daily dollars. Negative would be a regression. */
+  reimbursement: number;
+  /** Fractional change. Null when the baseline earned nothing, where a ratio has no meaning. */
+  percent: number | null;
+  /** Improved minus baseline seconds. Negative means the new one is faster. */
+  seconds: number;
+  /** baseline / improved runtime. Null when the improved run was too fast to time. */
+  speedup: number | null;
+  /** The new result carries a proof of optimality and the old one did not. */
+  newly_proven_optimal: boolean;
+  /** Both sides found groupings worth the same to the cent. */
+  same_result: boolean;
+}
+
+/** Response <- POST /api/districts/compare/ */
+export interface CompareResponse {
+  name: string;
+  code: string;
+  state_code: string;
+  school_count: number;
+  total_enrolled: number;
+  overall_isp: number;
+  evaluate_by: EvaluateBy;
+  max_groups: number;
+  schools: SchoolOutput[];
+  /** The optimizer as the main branch runs it. */
+  baseline: CompareSide;
+  /** The optimizer as this branch runs it. */
+  improved: CompareSide;
+  delta: CompareDelta;
+  optimization_info?: { timestamp: string };
+  error?: string;
+}
+
+/**
  * Records emitted by POST /api/districts/optimize-stream/ as newline-delimited
  * JSON, one per line, in the order the server produced them.
  */

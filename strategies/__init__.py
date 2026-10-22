@@ -6,6 +6,7 @@ from .spread import SpreadCEPStrategy
 from .pairs import PairsCEPStrategy
 from .nyc_moda_simulated_annealing import NYCMODASimulatedAnnealingCEPStrategy
 from .exact import ExactCEPStrategy
+from .interval_dp import IntervalDPCEPStrategy
 
 STRATEGIES = {
     "OneToOne":OneToOneCEPStrategy,
@@ -14,6 +15,7 @@ STRATEGIES = {
     #"AlgoV2":AlgoV2CEPStrategy,
     "Exhaustive":ExhaustiveCEPStrategy,
     "Exact":ExactCEPStrategy,
+    "IntervalDP":IntervalDPCEPStrategy,
     "Spread":SpreadCEPStrategy,
     "Pairs": PairsCEPStrategy,
     "NYCMODA": NYCMODASimulatedAnnealingCEPStrategy,

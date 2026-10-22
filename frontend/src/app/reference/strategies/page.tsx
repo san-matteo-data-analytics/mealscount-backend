@@ -6,7 +6,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import PageHeader from "@/components/PageHeader";
-import { COST_LABEL, STRATEGIES } from "@/lib/content";
+import { AUTORUN_LABEL, COST_LABEL, STRATEGIES } from "@/lib/content";
 
 const COST_COLOR: Record<string, "success" | "info" | "warning" | "error"> = {
   trivial: "success",
@@ -47,7 +47,7 @@ export default function StrategiesPage() {
                 <Chip size="small" label={COST_LABEL[s.cost]} color={COST_COLOR[s.cost]} variant="outlined" />
                 <Chip
                   size="small"
-                  label={s.autoRun === "always" ? "tried every time" : "large districts only"}
+                  label={AUTORUN_LABEL[s.autoRun]}
                   variant="outlined"
                 />
               </Stack>
