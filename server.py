@@ -5,7 +5,9 @@ from werkzeug.routing import BaseConverter
 from urllib.parse import urlparse
 import os,os.path,datetime,time
 import us,uuid,json
+import queue,threading
 import zipfile
+from collections import namedtuple
 from io import BytesIO
 
 import boto3
@@ -16,6 +18,75 @@ import csv,codecs,os,os.path
 from strategies.base import CEPDistrict,CEPSchool,DEFAULT_ISP_THRESHOLD
 from strategies.naive import CustomGroupsCEPStrategy
 from cep_estimatory import parse_strategy,add_strategies
+
+# Largest district the Exact (subset DP) strategy will attempt. 3^n work, so
+# ~4s at 16 schools; raise with care.
+EXACT_MAX_SCHOOLS = int(os.environ.get("EXACT_MAX_SCHOOLS",16))
+
+def default_strategies(school_count,evaluate_by,max_groups):
+    '''The strategy set the API runs when the caller does not specify one.
+
+    Exact replaces Exhaustive wherever it can run: it returns the same
+    provably-optimal grouping, handles districts up to EXACT_MAX_SCHOOLS
+    rather than 10, and is far cheaper.
+    '''
+    # The cheap heuristics always run: they cost milliseconds and give the user
+    # something to compare the recommendation against (OneToOne is the
+    # do-nothing baseline).
+    strategies = ["Pairs","OneToOne","OneGroup","Spread","Binning"]
+
+    if school_count <= EXACT_MAX_SCHOOLS:
+        # Exact proves the optimum, so the expensive metaheuristics below cannot
+        # beat it and are skipped. That makes 12-16 school districts markedly
+        # faster than running NYCMODA + GreedyLP, not slower.
+        strategies.append("Exact?evaluate_by=%s&max_schools=%s&max_groups=%s" % (
+            evaluate_by,EXACT_MAX_SCHOOLS,max_groups))
+        return strategies
+
+    # IntervalDP is deliberately NOT run here. Measured on real California
+    # districts it never improved the answer the API returns -- NYCMODA and
+    # GreedyLP already reach at least as good a grouping on every district
+    # tested (0 improvements over 13 districts from 17 to 68 schools) -- so
+    # auto-running it would add a strategy card and payload for no gain.
+    # It stays registered, and compare_strategies.py scores it, because it
+    # reaches ~98% of the ensemble result in ~0.00s where the ensemble takes
+    # 10s+; that makes it a candidate fallback if large districts ever need a
+    # time budget, which is a separate decision from the default set.
+    strategies.append("Exhaustive?evaluate_by=%s" % evaluate_by)
+    if school_count > 11:
+        strategies.append(
+            "NYCMODA?fresh_starts=50&iterations=1000&ngroups=%s&evaluate_by=%s" % (max_groups,evaluate_by))
+        strategies.append("GreedyLP")
+    return strategies
+
+
+def baseline_strategies(school_count,evaluate_by,max_groups):
+    '''The strategy set exactly as the main branch runs it.
+
+    Frozen on purpose. This is the "before" side of /api/districts/compare/, so
+    it must keep reproducing what main produces even as default_strategies()
+    moves on. If you change this, you are changing the baseline and the
+    comparison stops meaning what it says.
+
+    Transcribed from main\'s server.py optimize_async(); main keys the >11 school
+    test off the raw payload rather than the active school count, which is the
+    one difference here -- we use the active count so both sides of the
+    comparison see the same district.
+    '''
+    strategies = [
+        "Pairs",
+        "OneToOne",
+        "Exhaustive?evaluate_by=%s" % evaluate_by,
+        "OneGroup",
+        "Spread",
+        "Binning",
+    ]
+    if school_count > 11:
+        strategies.append(
+            "NYCMODA?fresh_starts=50&iterations=1000&ngroups=%s&evaluate_by=%s" % (max_groups,evaluate_by))
+        strategies.append("GreedyLP")
+    return strategies
+
 
 # If we have specified AWS keys, this is where we will tell the client where
 # the results will be on S3
@@ -88,17 +159,8 @@ def optimize_async():
     evaluate_by = event.get("evaluate_by","reimbursement")
 
     if not event.get("strategies_to_run",False):
-        event["strategies_to_run"] = [
-            "Pairs",
-            "OneToOne",
-            "Exhaustive?evaluate_by=%s" % evaluate_by,
-            "OneGroup",
-            "Spread",
-            "Binning",
-        ] 
-        if len(event["schools"]) > 11:
-            event["strategies_to_run"].append("NYCMODA?fresh_starts=50&iterations=1000&ngroups=%s&evaluate_by=%s" % (max_groups,evaluate_by))
-            event["strategies_to_run"].append("GreedyLP")
+        event["strategies_to_run"] = default_strategies(
+            len(event["schools"]),evaluate_by,max_groups)
 
     # Large school districts (LA) don't fit in our 256kb Event Invocation limit on Lambda,
     # So sneak it in via ZipFile
@@ -137,13 +199,21 @@ def optimize_async():
 
     return result
 
-@app.route("/api/districts/optimize/", methods=['POST'])
-def optimize():
-    d_obj = request.json
+class OptimizationInputError(ValueError):
+    '''A bad district payload. Reported back to the caller, not a server fault.'''
 
-    if not d_obj:
-        return {"error":"Invalid JSON data, please ensure all data fields are active"}
 
+# Everything the endpoints need to run and describe one optimization.
+Optimization = namedtuple("Optimization","district state evaluate_by max_groups isp_threshold")
+
+
+def build_optimization(d_obj):
+    '''Turn a request body into a district with its strategies already attached.
+
+    Shared by optimize() and optimize_stream() so the two cannot drift -- the
+    streaming endpoint has to compute exactly what the blocking one computes,
+    only narrating it as it goes.
+    '''
     isp_threshold = ("isp_threshold" in d_obj) and float(d_obj.get("isp_threshold")) or DEFAULT_ISP_THRESHOLD
     schools = d_obj["schools"]
     state = d_obj["state_code"]
@@ -170,40 +240,254 @@ def optimize():
         district.add_school(CEPSchool(row))
 
     if not district.schools:
-        return {"error":"No schools provided"}
+        raise OptimizationInputError("No schools provided")
 
     # TODO allow this as a param
     max_groups = d_obj.get("max_groups",10)
     if max_groups != None: max_groups = int(max_groups)
     evaluate_by = d_obj.get("evaluate_by","reimbursement")
-    add_strategies(
-        district,
-        [
-            "Pairs",
-            "OneToOne",
-            "Exhaustive?evaluate_by=%s"%evaluate_by,
-            "OneGroup",
-            "Spread",
-            "Binning",
-            "NYCMODA?fresh_starts=100&iterations=2000&ngroups=%s&evaluate_by=%s"%(max_groups,evaluate_by),
-            "GreedyLP"
-        ],
-        isp_threshold,
-    )
+    strategies_to_run = d_obj.get("strategies_to_run") or default_strategies(
+        len(district.schools),evaluate_by,max_groups)
+    add_strategies(district,strategies_to_run,isp_threshold)
 
-    t0 = time.time()
-    district.run_strategies()
-    district.evaluate_strategies(max_groups=max_groups,evaluate_by=evaluate_by)
+    return Optimization(district,state,evaluate_by,max_groups,isp_threshold)
 
-    result = district.as_dict()
-    result["state_code"] = state
-    result["evaluate_by"] = evaluate_by
-    result["max_groups"] = max_groups
+
+def optimization_result(opt,elapsed):
+    '''The response body, once opt.district has had its strategies run and evaluated.'''
+    result = opt.district.as_dict()
+    result["state_code"] = opt.state
+    result["evaluate_by"] = opt.evaluate_by
+    result["max_groups"] = opt.max_groups
     result["optimization_info"] = {
         "timestamp":str(datetime.datetime.now()),
-        "time": time.time() - t0
+        "time": elapsed,
     }
     return result
+
+
+@app.route("/api/districts/optimize/", methods=['POST'])
+def optimize():
+    d_obj = request.json
+
+    if not d_obj:
+        return {"error":"Invalid JSON data, please ensure all data fields are active"}
+
+    try:
+        opt = build_optimization(d_obj)
+    except OptimizationInputError as e:
+        return {"error":str(e)}
+
+    t0 = time.time()
+    opt.district.run_strategies()
+    opt.district.evaluate_strategies(max_groups=opt.max_groups,evaluate_by=opt.evaluate_by)
+
+    return optimization_result(opt,time.time() - t0)
+
+
+def _run_side(d_obj,strategies_to_run):
+    '''Run one optimizer configuration over a fresh copy of the district.
+
+    build_optimization() constructs a new CEPDistrict every call, which matters:
+    run_strategies() mutates the district, so the two sides of a comparison must
+    never share one.
+    '''
+    side = dict(d_obj)
+    side["strategies_to_run"] = strategies_to_run
+    opt = build_optimization(side)
+    t0 = time.time()
+    opt.district.run_strategies()
+    opt.district.evaluate_strategies(max_groups=opt.max_groups,evaluate_by=opt.evaluate_by)
+    elapsed = time.time() - t0
+
+    best = opt.district.best_strategy
+    # Schools are identical on both sides, so they are sent once at the top
+    # level rather than duplicated into each side of the comparison.
+    result = opt.district.as_dict(include_schools=False)
+    result["seconds"] = round(elapsed,3)
+    result["strategies_run"] = strategies_to_run
+    result["group_count"] = best and len(best.groups or []) or 0
+    return opt,result
+
+
+@app.route("/api/districts/compare/", methods=['POST'])
+def compare():
+    '''Run the main-branch optimizer and the current one over the same district.
+
+    Answers one question: for this district, what does the work on this branch
+    actually change? Both sides see identical input and identical scoring, so
+    any difference in the reported dollars is a difference in the grouping each
+    one found -- not in how the two were measured.
+
+    Note this is slower than /optimize/, necessarily: the baseline side runs the
+    strategies the current default set was written to avoid, so on a district
+    above 11 schools it pays for NYCMODA and GreedyLP in full.
+    '''
+    d_obj = request.json
+    if not d_obj:
+        return {"error":"Invalid JSON data, please ensure all data fields are active"}
+
+    try:
+        # Built once up front purely to learn the active school count, which
+        # both strategy sets key off. Its strategies are discarded.
+        probe = build_optimization(dict(d_obj,strategies_to_run=["OneToOne"]))
+        school_count = len(probe.district.schools)
+        evaluate_by = probe.evaluate_by
+        max_groups = probe.max_groups
+
+        baseline_opt,baseline = _run_side(
+            d_obj,baseline_strategies(school_count,evaluate_by,max_groups))
+        improved_opt,improved = _run_side(
+            d_obj,default_strategies(school_count,evaluate_by,max_groups))
+    except OptimizationInputError as e:
+        return {"error":str(e)}
+
+    before = baseline["est_reimbursement"]
+    after = improved["est_reimbursement"]
+    return {
+        "name": improved["name"],
+        "code": improved["code"],
+        "state_code": baseline_opt.state,
+        "school_count": school_count,
+        "total_enrolled": improved["total_enrolled"],
+        "overall_isp": improved["overall_isp"],
+        "evaluate_by": evaluate_by,
+        "max_groups": max_groups,
+        "schools": improved_opt.district.as_dict()["schools"],
+        "baseline": baseline,
+        "improved": improved,
+        "delta": {
+            "reimbursement": round(after - before,2),
+            # A baseline of zero means no grouping qualified at all; a percent
+            # change against it would be meaningless, so it is reported as null.
+            "percent": (round((after - before) / before,6) if before > 0 else None),
+            "seconds": round(improved["seconds"] - baseline["seconds"],3),
+            # Usually the interesting number. On most districts both sides find
+            # the same grouping and the dollars are identical; what changed is
+            # that the answer now comes with a proof and arrives in a fraction
+            # of the time. Guarded against a zero-length baseline run.
+            "speedup": (round(baseline["seconds"] / improved["seconds"],1)
+                        if improved["seconds"] > 0.0005 else None),
+            "newly_proven_optimal": bool(
+                improved["best_is_optimal"] and not baseline["best_is_optimal"]),
+            "same_result": abs(after - before) < 0.01,
+        },
+        "optimization_info": {"timestamp":str(datetime.datetime.now())},
+    }
+
+
+# How long the stream may go silent before it emits a keepalive. A single
+# strategy on a large district can run for minutes; without a byte on the wire
+# the dev proxy (and any intermediary) treats the socket as dead and resets it.
+STREAM_HEARTBEAT_SECONDS = 5
+
+
+def _ndjson(obj):
+    return json.dumps(obj) + "\n"
+
+
+@app.route("/api/districts/optimize-stream/", methods=['POST'])
+def optimize_stream():
+    '''optimize(), narrated as it runs.
+
+    The blocking endpoint can sit for minutes on a large district with nothing
+    on the wire, so a caller cannot tell a slow run from a hung one -- and
+    neither can the proxies in between. This emits newline-delimited JSON:
+
+        {"event":"start",          "strategies":[...], "school_count":n}
+        {"event":"strategy_start", "index":i, "name":...}
+        {"event":"strategy_done",  "index":i, "reimbursement":..., "groups":n}
+        {"event":"heartbeat",      "elapsed":s}
+        {"event":"done",           "result":{...}}   # exactly optimize()'s body
+        {"event":"error",          "error":"..."}
+
+    The status line is already sent by the time the strategies run, so a failure
+    mid-run arrives as an "error" record rather than an HTTP status.
+    '''
+    d_obj = request.json
+
+    if not d_obj:
+        return {"error":"Invalid JSON data, please ensure all data fields are active"}
+
+    try:
+        opt = build_optimization(d_obj)
+    except OptimizationInputError as e:
+        return {"error":str(e)}
+
+    # Resolved eagerly: the generator below runs after the request context is
+    # gone, so it must not touch `request`.
+    district = opt.district
+    strategies = list(district.strategies)
+
+    def generate():
+        t0 = time.time()
+        yield _ndjson({
+            "event":"start",
+            "school_count":len(district.schools),
+            "evaluate_by":opt.evaluate_by,
+            "max_groups":opt.max_groups,
+            "strategies":[s.name for s in strategies],
+        })
+
+        # The strategies run on a worker so the generator stays free to emit
+        # heartbeats through a single long one. Daemon: a client that hangs up
+        # mid-run must not keep the process alive.
+        q = queue.Queue()
+        stop = threading.Event()
+
+        def worker():
+            try:
+                for i,s in enumerate(strategies):
+                    if stop.is_set():
+                        return
+                    q.put({"event":"strategy_start","index":i,"name":s.name})
+                    st = time.time()
+                    s.create_groups(district)
+                    q.put({
+                        "event":"strategy_done",
+                        "index":i,
+                        "name":s.name,
+                        "time":time.time() - st,
+                        "groups":len(s.groups or []),
+                        "reimbursement":s.reimbursement,
+                        "students_covered":s.students_covered,
+                    })
+                district.evaluate_strategies(max_groups=opt.max_groups,evaluate_by=opt.evaluate_by)
+                q.put({"event":"done","result":optimization_result(opt,time.time() - t0)})
+            except Exception as e:
+                q.put({"event":"error","error":"%s: %s" % (type(e).__name__,e)})
+            finally:
+                q.put(None)
+
+        threading.Thread(target=worker,daemon=True).start()
+
+        try:
+            while True:
+                try:
+                    msg = q.get(timeout=STREAM_HEARTBEAT_SECONDS)
+                except queue.Empty:
+                    yield _ndjson({"event":"heartbeat","elapsed":time.time() - t0})
+                    continue
+                if msg is None:
+                    break
+                yield _ndjson(msg)
+        finally:
+            # The client hung up (the heartbeat is what notices, within
+            # STREAM_HEARTBEAT_SECONDS). Stop at the next strategy boundary
+            # rather than finishing a run nobody is waiting for -- a strategy
+            # already under way cannot be interrupted. Harmless on the normal
+            # path, where the worker has already finished.
+            stop.set()
+
+    return app.response_class(
+        generate(),
+        mimetype="application/x-ndjson",
+        headers={
+            "Cache-Control":"no-cache, no-transform",
+            # Tell nginx/the Heroku router not to sit on the chunks
+            "X-Accel-Buffering":"no",
+        },
+    )
 
 @app.route("/api/districts/calculate/", methods=['POST'])
 def calculate():

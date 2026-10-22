@@ -1,7 +1,7 @@
 # user created stuff
 mealscount/settings.py
 
-# Created by https://www.gitignore.io/api/osx,django,python,pycharm,intellij 
+# Created by https://www.gitignore.io/api/osx,django,python,pycharm,intellij
 ### Django ###
 *.log
 *.pot
@@ -145,8 +145,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -253,3 +253,4 @@ function.zip
 .env
 .env.aws
 
+*.xlsx

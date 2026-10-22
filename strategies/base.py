@@ -241,8 +241,14 @@ class CEPDistrict(object):
             if evaluate_by == "reimbursement":
                 if best == None or s.reimbursement > best.reimbursement: 
                     best = s
+                elif s.reimbursement == best.reimbursement and \
+                     getattr(s,"optimal",False) and not getattr(best,"optimal",False):
+                    best = s
             elif evaluate_by == "coverage":
                 if best == None or s.students_covered > best.students_covered: 
+                    best = s
+                elif s.students_covered == best.students_covered and \
+                     getattr(s,"optimal",False) and not getattr(best,"optimal",False):
                     best = s
             else:
                 raise Exception("Unknown evaluation: %s" % evaluate_by)
@@ -283,12 +289,17 @@ class CEPDistrict(object):
             "best_strategy": self.best_strategy and self.best_strategy.name or None,
             "est_reimbursement": self.best_strategy and self.best_strategy.reimbursement or 0.0,
             "isp_threshold": self.isp_threshold,
+            "best_is_optimal": bool(getattr(self.best_strategy,"optimal",False)),
+            "optimality_basis": getattr(self.best_strategy,"optimality_basis",None),
         }
         if include_schools:
             result["schools"] = [ s.as_dict(self) for s in self._schools]
         if include_strategies and self.strategies:
             result["strategies"] = [ s.as_dict() for s in self.strategies ]
-            result["best_index"] = self.strategies.index(self.best_strategy)
+            result["best_index"] = (
+                self.strategies.index(self.best_strategy)
+                if self.best_strategy in self.strategies else None
+            )
         return result
 
 class BaseCEPStrategy(ABC):
@@ -305,11 +316,11 @@ class BaseCEPStrategy(ABC):
 
     @property
     def students_covered(self):
-        return sum([g.covered_students for g in self.groups])
+        return sum([g.covered_students for g in (self.groups or [])])
 
     @property
     def total_enrolled(self):
-        return sum([g.total_enrolled for g in self.groups])
+        return sum([g.total_enrolled for g in (self.groups or [])])
 
     @property
     def isp(self):
@@ -344,11 +355,11 @@ class BaseCEPStrategy(ABC):
 
     @property
     def reimbursement(self):
-        r = sum([g.est_reimbursement() for g in self.groups])
+        r = sum([g.est_reimbursement() for g in (self.groups or [])])
         return r
 
     def school_reimbursement(self,school):
-        for g in self.groups:
+        for g in (self.groups or []):
             if school in g.schools:
                 return g.school_reimbursement(school)
         return 0

@@ -69,6 +69,48 @@ class CEPTestCase(unittest.TestCase):
         sobj["schools"][1]['total_enrolled'] = "NA"
         result = self.client.post('/api/districts/optimize/', json = sobj)
 
+    def test_optimize_stream(self):
+        """The streamed run must report every strategy and agree with optimize()."""
+        sobj = oceanside()
+        result = self.client.post('/api/districts/optimize-stream/', json = sobj)
+        self.assertEqual(result.status_code,200)
+        self.assertTrue("ndjson" in result.headers["Content-Type"])
+
+        events = [json.loads(line) for line in result.data.decode().splitlines() if line.strip()]
+        by_type = {}
+        for e in events:
+            by_type.setdefault(e["event"],[]).append(e)
+
+        self.assertNotIn("error",by_type)
+        self.assertEqual(len(by_type["start"]),1)
+        self.assertEqual(len(by_type["done"]),1)
+
+        # Every announced strategy has to start and finish, in order.
+        announced = by_type["start"][0]["strategies"]
+        self.assertEqual([e["name"] for e in by_type["strategy_start"]],announced)
+        self.assertEqual([e["name"] for e in by_type["strategy_done"]],announced)
+
+        # The terminal payload is what the blocking endpoint would have returned.
+        streamed = by_type["done"][0]["result"]
+        blocking = self.client.post('/api/districts/optimize/', json = oceanside()).json
+        self.assertEqual(streamed["best_strategy"],blocking["best_strategy"])
+        self.assertEqual(streamed["est_reimbursement"],blocking["est_reimbursement"])
+        self.assertEqual(len(streamed["strategies"]),len(blocking["strategies"]))
+
+        # Per-strategy scores must match the ones in the final result, so a
+        # "best so far" built from the stream cannot disagree with the winner.
+        final = {s["name"]:s["reimbursement"] for s in streamed["strategies"]}
+        for e in by_type["strategy_done"]:
+            self.assertEqual(e["reimbursement"],final[e["name"]])
+
+    def test_optimize_stream_no_schools(self):
+        """A rejected payload fails before streaming starts, as plain JSON."""
+        sobj = oceanside()
+        sobj["schools"] = []
+        result = self.client.post('/api/districts/optimize-stream/', json = sobj)
+        self.assertEqual(result.status_code,200)
+        self.assertTrue("error" in result.json)
+
     def test_broken_json(self):
         sobj = oceanside()
         result = self.client.post('/api/districts/optimize/', data = "{Broken JSON}")
@@ -156,6 +198,69 @@ class CEPTestCase(unittest.TestCase):
         result = test_run(for_lambda,datetime.datetime.now())
   
 # Mostly accurate, severe need is not accurate
+class CompareTestCase(unittest.TestCase):
+    '''/api/districts/compare/ runs the main-branch optimizer beside the current
+    one. The value of the endpoint rests on both sides seeing identical input and
+    identical scoring, so that is what these pin down.'''
+
+    def setUp(self):
+        app.config["TESTING"] = True
+        self.client = app.test_client()
+
+    def compare(self,payload):
+        return self.client.post('/api/districts/compare/', json=payload).json
+
+    def test_both_sides_run_and_agree_on_the_district(self):
+        obj = self.compare(oceanside())
+        self.assertNotIn("error",obj)
+        for side in ("baseline","improved"):
+            self.assertIn(side,obj)
+            self.assertGreater(obj[side]["est_reimbursement"],0)
+            # Schools are sent once at the top level, not duplicated per side.
+            self.assertNotIn("schools",obj[side])
+        self.assertEqual(obj["school_count"],len(obj["schools"]))
+        self.assertEqual(obj["baseline"]["total_enrolled"],obj["improved"]["total_enrolled"])
+
+    def test_baseline_is_the_main_branch_strategy_set(self):
+        '''If this drifts, the comparison stops meaning what it claims.'''
+        obj = self.compare(oceanside())
+        names = [s.split("?")[0] for s in obj["baseline"]["strategies_run"]]
+        self.assertEqual(names,["Pairs","OneToOne","Exhaustive","OneGroup","Spread","Binning"])
+        self.assertNotIn("Exact",names)
+
+    def test_delta_is_improved_minus_baseline(self):
+        obj = self.compare(oceanside())
+        expected = obj["improved"]["est_reimbursement"] - obj["baseline"]["est_reimbursement"]
+        self.assertAlmostEqual(obj["delta"]["reimbursement"],expected,places=2)
+        self.assertEqual(obj["delta"]["same_result"],abs(expected) < 0.01)
+
+    def test_improved_side_proves_optimality_on_a_small_district(self):
+        obj = self.compare(oceanside())
+        self.assertTrue(obj["improved"]["best_is_optimal"])
+        self.assertFalse(obj["baseline"]["best_is_optimal"])
+        self.assertTrue(obj["delta"]["newly_proven_optimal"])
+
+    def test_improved_never_loses_to_baseline_on_a_small_district(self):
+        '''Below the Exact ceiling the improved side is provably optimal, so it
+        cannot be beaten by the baseline. A failure here is a real regression.'''
+        obj = self.compare(oceanside())
+        self.assertGreaterEqual(
+            obj["improved"]["est_reimbursement"],obj["baseline"]["est_reimbursement"] - 0.01)
+
+    def test_percent_is_null_when_baseline_earned_nothing(self):
+        '''No grouping qualified, so a percentage change has no meaning.'''
+        sobj = oceanside()
+        for school in sobj["schools"]:
+            school["total_eligible"] = 1
+        obj = self.compare(sobj)
+        self.assertEqual(obj["baseline"]["est_reimbursement"],0)
+        self.assertIsNone(obj["delta"]["percent"])
+
+    def test_no_schools_is_a_reported_error_not_a_crash(self):
+        obj = self.compare({"name":"x","code":"x","state_code":"ca","schools":[]})
+        self.assertIn("error",obj)
+
+
 def oceanside(full_list=False):
     return copy.deepcopy({
     "name":"Oceanside Unified School District",

@@ -34,6 +34,31 @@ This environment can be created with a virtual environment using the jupyter_req
     $> pip install -r jupyter_requirements.txt
     $> jupyter notebook
 
+# Comparing Optimization Strategies
+
+The grouping strategies live in `strategies/` and are registered in
+`strategies/__init__.py`. Every strategy that has ever shipped is still
+registered, so a new approach can be measured against the ones it is meant to
+replace rather than quietly swapped in for them.
+
+`compare_strategies.py` scores a set of strategies on the same districts and
+reports each as a fraction of the best result anyone found:
+
+    $> python compare_strategies.py data/ca/latest.csv --min-schools 11 --max-schools 16
+
+Below 17 schools the `Exact` strategy proves the optimum, so those fractions are
+true optimality ratios. Above that, no strategy here can prove optimality and the
+fractions are only relative to the best result found.
+
+One caveat worth understanding before trusting the output: reimbursement is
+driven by *meals served*, and the CSVs in `data/` carry enrollment and
+eligibility but no meal counts. When meal columns are absent the tool models them
+from enrollment using the USDA participation estimates in `strategies/base.py`.
+That is a model, not measurement. `--jitter` controls how much per-school
+variation it introduces, and the ranking is genuinely sensitive to it, because a
+school whose meals do not track its size is exactly the case that breaks the
+assumption `IntervalDP` relies on. Use your own meal data where you have it.
+
 # Example Usage - Frontend Dev
 
 If you are just looking to work on the Vue.js front-end, and don't want / know how to setup a python environment, you can just utilize the node toolset and run "npm run start". This will automatically proxy all data feeds to https://www.mealscount.com/, and let you adjust your local Vue.js environment.
@@ -71,6 +96,112 @@ It is also possible to run a jupyter notebook through the Docker container, but 
     $(container)> jupyter notebook --no-browser --allow-root --ip 0.0.0.0
 
 Use the url printed by the console, e.g. *http://127.0.0.1:8888/?token=XXXXXXX...* to connect.
+
+# Optimization Strategies
+
+Strategies live in the `strategies/` module and are registered in `strategies/__init__.py`.
+Most are heuristics; one is exact.
+
+## Exact (`strategies/exact.py`)
+
+`Exact` returns a **provably optimal** grouping for districts up to 16 schools. Rather than
+enumerating every set partition the way `Exhaustive` does, it uses dynamic programming over
+subsets:
+
+    dp[S] = max over subsets T of S containing S's lowest member:
+                value(T) + dp[S - T]
+
+That is O(3^n) instead of Bell(n) partitions -- 43 million steps at 16 schools where
+enumeration would need 10.5 billion. Measured against `Exhaustive` on identical districts it
+returns the same answer:
+
+| schools | Exhaustive | Exact   | speedup |
+| ------- | ---------- | ------- | ------- |
+| 8       | 0.041s     | 0.002s  | 22x     |
+| 10      | 1.386s     | 0.012s  | 115x    |
+| 13      | --         | 0.282s  | (Exhaustive cannot run) |
+| 16      | --         | 8.6s    | (Exhaustive cannot run) |
+
+Two shortcuts skip the search entirely:
+
+* A district already at or above **62.5% ISP** is fully funded as a single group, which is the
+  absolute ceiling, so `OneGroup` is optimal by construction.
+* A one-school district has only one possible grouping.
+
+When `Exact` runs, the API skips `NYCMODA` and `GreedyLP` -- they cannot beat a proven optimum,
+and skipping them makes 12-16 school districts *faster* than before, not slower (a 12-school
+district went from ~20s to ~0.1s end to end).
+
+The response reports the proof:
+
+    "best_is_optimal": true,
+    "optimality_basis": "proven optimal over all partitions of 12 schools"
+
+Set `EXACT_MAX_SCHOOLS` to change the ceiling (default 16). Cost grows ~3x per school, so
+raise it with care. Above the ceiling `Exact` declines rather than guessing, and the response
+falls back to the heuristics with `best_is_optimal: false`.
+
+Parameters: `max_schools`, `evaluate_by` (`reimbursement` or `coverage`), `max_groups`.
+
+## IntervalDP (`strategies/interval_dp.py`)
+
+`IntervalDP` sorts the schools by ISP and finds the best set of cuts along that
+line, so every group is a run of adjacent schools:
+
+    dp[i] = max over j > i of  value(schools[i:j]) + dp[j]
+
+That is O(n^2) rather than O(3^n), so it answers where `Exact` declines: San Diego
+Unified (194 schools) takes **0.06s**. It is provably optimal *within* the
+contiguous class, which is not the same as optimal -- it says so in
+`optimality_basis`, and `optimal` stays false above the 62.5% shortcut.
+
+It is **not** part of the default strategy set, because measuring it honestly did
+not justify auto-running it:
+
+| districts | IntervalDP vs best-found | improved the returned answer |
+| --------- | ------------------------ | ---------------------------- |
+| 11-16 schools | 0.981 mean | -- (`Exact` proves the optimum here) |
+| 17-60 schools | 0.977 mean | **0 of 12** |
+| 61+ schools   | 0.994 on the one district measured | **0 of 1** |
+
+On every district tested, `NYCMODA` or `GreedyLP` already reached a grouping at
+least as good, so adding `IntervalDP` to the ensemble would cost a strategy card
+and payload for no gain. What it does buy is speed: ~98% of the ensemble result
+in ~0.00s where the ensemble itself takes 10s or more. That makes it a candidate
+*fallback* if very large districts ever need a time budget -- a separate decision
+from the default set, and not one this change makes.
+
+Its accuracy depends on meal counts tracking enrollment, because that is what
+makes a group's value monotone in ISP order. Measured against `Exact` on
+synthetic districts:
+
+| meal counts | IntervalDP mean | worst |
+| ----------- | --------------- | ----- |
+| exactly proportional to enrollment | 0.997 | 0.888 |
+| +/-30% per-school variation | 0.991 | 0.832 |
+| drawn independently of enrollment | 0.960 | 0.262 |
+
+Parameters: `evaluate_by` (`reimbursement` or `coverage`), `max_groups`,
+`max_block` (caps block width to bound run time; 0 means unlimited below 120
+schools).
+
+## How much do the heuristics actually miss?
+
+Measured against `Exact` on real California districts (meals-served figures estimated, since
+the CA feed does not carry them), the heuristic ensemble is close to optimal almost everywhere.
+The gap concentrates in districts sitting just above the 25% eligibility floor:
+
+| district ISP (median) | ensemble = optimal | mean gap | worst district |
+| --------------------- | ------------------ | -------- | -------------- |
+| 25%                   | 60%                | 0.00%    | 0.03%          |
+| **30%**               | 11%                | **0.06%**| **3.04%**      |
+| 47%                   | 11%                | 0.00%    | 0.01%          |
+| 81%                   | 93%                | 0.00%    | 0.01%          |
+
+The practical consequence: the value of `Exact` is mostly *certainty* (and speed), not finding
+dramatically better groupings. If you are considering another metaheuristic -- a genetic
+algorithm, tabu search -- note there is well under 1% of headroom for it to attack, and it
+would only pay off for districts above 16 schools near the eligibility threshold.
 
 # Adding other state data
 
