@@ -155,6 +155,16 @@ export default function ComparePage() {
 
   const runnable = schools.length > 0 && !busy;
 
+  // Same rule as the optimizer page: no more groups than schools that will be sent.
+  const activeCount = schools.filter(
+    (s) => s.active !== false && s.school_code && Number(s.total_enrolled) > 0,
+  ).length;
+  React.useEffect(() => {
+    if (activeCount > 0) {
+      setSettings((s) => (s.max_groups > activeCount ? { ...s, max_groups: activeCount } : s));
+    }
+  }, [activeCount]);
+
   async function run() {
     const controller = new AbortController();
     abortRef.current = controller;
@@ -221,7 +231,7 @@ export default function ComparePage() {
           ) : null}
         </Stack>
 
-        <SettingsPanel settings={settings} onChange={setSettings} />
+        <SettingsPanel settings={settings} onChange={setSettings} schoolCount={activeCount} />
 
         <Box>
           <Button

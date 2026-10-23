@@ -55,6 +55,15 @@ export default function OptimizerPage() {
     (s) => s.active !== false && s.school_code && Number(s.total_enrolled) > 0,
   );
   const hasSchools = schools.length > 0;
+
+  // A group limit above the school count means nothing; pull it down when an
+  // upload or edit leaves fewer schools than the current setting.
+  const activeCount = activeSchools.length;
+  React.useEffect(() => {
+    if (activeCount > 0) {
+      setSettings((s) => (s.max_groups > activeCount ? { ...s, max_groups: activeCount } : s));
+    }
+  }, [activeCount]);
   const hasMeals = activeSchools.some(
     (s) => Number(s.daily_lunch_served) > 0 || Number(s.daily_breakfast_served) > 0,
   );
@@ -173,7 +182,11 @@ export default function OptimizerPage() {
       {hasSchools && (
         <>
           <Stack spacing={3} sx={{ mb: 4 }}>
-            <SettingsPanel settings={settings} onChange={setSettings} />
+            <SettingsPanel
+              settings={settings}
+              onChange={setSettings}
+              schoolCount={activeSchools.length}
+            />
             <SchoolEditor
               schools={schools}
               onChange={(next) => {
