@@ -53,14 +53,31 @@ function useStates(selectedCode: string): StateOption[] {
 export default function SettingsPanel({
   settings,
   onChange,
+  schoolCount,
 }: {
   settings: DistrictSettings;
   onChange: (s: DistrictSettings) => void;
+  /** Schools that will be sent to the optimizer. More groups than this is meaningless. */
+  schoolCount: number;
 }) {
   const set = <K extends keyof DistrictSettings>(key: K, value: DistrictSettings[K]) =>
     onChange({ ...settings, [key]: value });
 
   const states = useStates(settings.state_code);
+
+  // Before any schools are loaded there is nothing to cap against.
+  const maxGroupsCap = schoolCount > 0 ? schoolCount : undefined;
+
+  // The field holds its own text so it can be cleared mid-edit; only a valid
+  // whole number in range is committed, and blur snaps the text back to it.
+  const [groupsDraft, setGroupsDraft] = React.useState(String(settings.max_groups));
+  React.useEffect(() => setGroupsDraft(String(settings.max_groups)), [settings.max_groups]);
+  const draftGroups = Number(groupsDraft);
+  const groupsDraftValid =
+    groupsDraft !== "" &&
+    Number.isInteger(draftGroups) &&
+    draftGroups >= 1 &&
+    (maxGroupsCap === undefined || draftGroups <= maxGroupsCap);
 
   return (
     <Paper variant="outlined" sx={{ p: 2.5 }}>
@@ -145,23 +162,37 @@ export default function SettingsPanel({
           </FormHelperText>
         </Box>
 
-        <Box>
-          <Typography variant="body2" gutterBottom>
-            Most groups to allow: <strong>{settings.max_groups}</strong>
-          </Typography>
-          <Slider
-            size="small"
-            value={settings.max_groups}
-            min={1}
-            max={20}
-            step={1}
-            valueLabelDisplay="auto"
-            onChange={(_, v) => set("max_groups", v as number)}
-          />
-          <FormHelperText sx={{ mt: 0 }}>
-            The most groups you are willing to administer. Any grouping needing more is set aside.
-          </FormHelperText>
-        </Box>
+        <TextField
+          label="Most groups to allow"
+          size="small"
+          fullWidth
+          type="number"
+          value={groupsDraft}
+          error={!groupsDraftValid}
+          slotProps={{ htmlInput: { min: 1, max: maxGroupsCap, step: 1 } }}
+          onChange={(e) => {
+            setGroupsDraft(e.target.value);
+            const v = Number(e.target.value);
+            if (
+              e.target.value !== "" &&
+              Number.isInteger(v) &&
+              v >= 1 &&
+              (maxGroupsCap === undefined || v <= maxGroupsCap)
+            ) {
+              set("max_groups", v);
+            }
+          }}
+          onBlur={() => setGroupsDraft(String(settings.max_groups))}
+          helperText={
+            !groupsDraftValid
+              ? maxGroupsCap === undefined
+                ? "Enter a whole number of 1 or more."
+                : `Enter a whole number from 1 to ${maxGroupsCap}.`
+              : maxGroupsCap === undefined
+                ? "The most groups you are willing to administer. Any grouping needing more is set aside."
+                : `Up to ${maxGroupsCap}, one per school. Any grouping needing more is set aside.`
+          }
+        />
 
         <FormControl size="small" fullWidth>
           <InputLabel id="hhfka-label">Paid lunch equity</InputLabel>
