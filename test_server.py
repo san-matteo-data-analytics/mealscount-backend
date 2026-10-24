@@ -291,3 +291,19 @@ def oceanside(full_list=False):
     })
 
 
+
+
+def test_large_districts_run_genetic_last_by_default():
+    names = [s.split("?")[0] for s in server.default_strategies(40,"reimbursement",10)]
+    assert names[-1] == "Genetic"
+    assert "CPSAT" not in names
+
+def test_extended_search_adds_cpsat_after_genetic():
+    specs = server.default_strategies(40,"reimbursement",10,extended_search=True)
+    assert [s.split("?")[0] for s in specs][-2:] == ["Genetic","CPSAT"]
+    assert "time_limit=%i" % server.EXTENDED_SEARCH_SECONDS in specs[-1]
+    assert server.EXTENDED_SEARCH_SECONDS < 600   # under the frontend proxy timeout
+
+def test_extended_search_ignored_where_exact_proves_the_optimum():
+    names = [s.split("?")[0] for s in server.default_strategies(12,"reimbursement",10,extended_search=True)]
+    assert "Exact" in names and "CPSAT" not in names and "Genetic" not in names

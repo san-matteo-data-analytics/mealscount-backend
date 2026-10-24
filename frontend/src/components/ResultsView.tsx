@@ -62,7 +62,7 @@ function StatCard({
   );
 }
 
-export default function ResultsView({ result }: { result: OptimizeResponse }) {
+function ResultsView({ result }: { result: OptimizeResponse }) {
   const strategies = result.strategies ?? [];
   const winner: StrategyOutput | undefined =
     result.best_index == null ? undefined : strategies[result.best_index];
@@ -311,3 +311,6 @@ export default function ResultsView({ result }: { result: OptimizeResponse }) {
     </Box>
   );
 }
+
+// Memoised: the result only changes when a run finishes, not as settings are edited.
+export default React.memo(ResultsView);

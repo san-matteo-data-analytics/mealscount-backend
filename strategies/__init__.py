@@ -7,6 +7,8 @@ from .pairs import PairsCEPStrategy
 from .nyc_moda_simulated_annealing import NYCMODASimulatedAnnealingCEPStrategy
 from .exact import ExactCEPStrategy
 from .interval_dp import IntervalDPCEPStrategy
+from .cp_sat import CPSATCEPStrategy
+from .genetic import GeneticCEPStrategy
 
 STRATEGIES = {
     "OneToOne":OneToOneCEPStrategy,
@@ -19,6 +21,8 @@ STRATEGIES = {
     "Spread":SpreadCEPStrategy,
     "Pairs": PairsCEPStrategy,
     "NYCMODA": NYCMODASimulatedAnnealingCEPStrategy,
-    "GreedyLP": GreedyLPStrategy
+    "GreedyLP": GreedyLPStrategy,
+    "CPSAT": CPSATCEPStrategy,
+    "Genetic": GeneticCEPStrategy,
 }
 

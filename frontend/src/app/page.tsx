@@ -56,6 +56,12 @@ export default function OptimizerPage() {
   );
   const hasSchools = schools.length > 0;
 
+  // Stable so the memoised SchoolEditor skips re-rendering on unrelated state changes.
+  const editSchools = React.useCallback((next: SchoolInput[]) => {
+    setSchools(next);
+    setResult(null);
+  }, []);
+
   // A group limit above the school count means nothing; pull it down when an
   // upload or edit leaves fewer schools than the current setting.
   const activeCount = activeSchools.length;
@@ -189,10 +195,7 @@ export default function OptimizerPage() {
             />
             <SchoolEditor
               schools={schools}
-              onChange={(next) => {
-                setSchools(next);
-                setResult(null);
-              }}
+              onChange={editSchools}
               ispThreshold={settings.isp_threshold}
               districtName={settings.name}
             />
@@ -234,6 +237,8 @@ export default function OptimizerPage() {
                     : activeSchools.length <= EXACT_MAX_SCHOOLS
                       ? "At this size the tool can work out the single best grouping there is, and it comes back right away."
                       : `Above ${EXACT_MAX_SCHOOLS} schools there are too many combinations to settle outright, so the tool searches instead. Allow about a minute at 40 schools, longer for a bigger district. Each grouping appears as it finishes.`}
+                  {activeSchools.length > EXACT_MAX_SCHOOLS && settings.extended_search &&
+                    " Extended search is on, which adds 9 minutes at the end."}
                 </Typography>
               </Box>
               <Button

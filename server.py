@@ -23,12 +23,21 @@ from cep_estimatory import parse_strategy,add_strategies
 # ~4s at 16 schools; raise with care.
 EXACT_MAX_SCHOOLS = int(os.environ.get("EXACT_MAX_SCHOOLS",16))
 
-def default_strategies(school_count,evaluate_by,max_groups):
+# How long the opt-in extended search (CPSAT) runs. Kept under the frontend
+# proxy's 10 minute timeout; the streaming endpoint's heartbeats keep the
+# connection alive through it, but the blocking endpoint has no such help.
+EXTENDED_SEARCH_SECONDS = int(os.environ.get("EXTENDED_SEARCH_SECONDS",540))
+
+def default_strategies(school_count,evaluate_by,max_groups,extended_search=False):
     '''The strategy set the API runs when the caller does not specify one.
 
     Exact replaces Exhaustive wherever it can run: it returns the same
     provably-optimal grouping, handles districts up to EXACT_MAX_SCHOOLS
     rather than 10, and is far cheaper.
+
+    extended_search adds CPSAT for EXTENDED_SEARCH_SECONDS on districts too
+    large for Exact. Below that Exact already proves the optimum, so it is
+    ignored.
     '''
     # The cheap heuristics always run: they cost milliseconds and give the user
     # something to compare the recommendation against (OneToOne is the
@@ -57,6 +66,12 @@ def default_strategies(school_count,evaluate_by,max_groups):
         strategies.append(
             "NYCMODA?fresh_starts=50&iterations=1000&ngroups=%s&evaluate_by=%s" % (max_groups,evaluate_by))
         strategies.append("GreedyLP")
+    # Genetic and CPSAT warm-start from the best grouping already found, so
+    # they run after everything they can learn from.
+    strategies.append("Genetic?max_groups=%s&evaluate_by=%s" % (max_groups,evaluate_by))
+    if extended_search:
+        strategies.append("CPSAT?time_limit=%s&max_groups=%s&evaluate_by=%s" % (
+            EXTENDED_SEARCH_SECONDS,max_groups,evaluate_by))
     return strategies
 
 
@@ -160,7 +175,7 @@ def optimize_async():
 
     if not event.get("strategies_to_run",False):
         event["strategies_to_run"] = default_strategies(
-            len(event["schools"]),evaluate_by,max_groups)
+            len(event["schools"]),evaluate_by,max_groups,bool(event.get("extended_search",False)))
 
     # Large school districts (LA) don't fit in our 256kb Event Invocation limit on Lambda,
     # So sneak it in via ZipFile
@@ -247,7 +262,7 @@ def build_optimization(d_obj):
     if max_groups != None: max_groups = int(max_groups)
     evaluate_by = d_obj.get("evaluate_by","reimbursement")
     strategies_to_run = d_obj.get("strategies_to_run") or default_strategies(
-        len(district.schools),evaluate_by,max_groups)
+        len(district.schools),evaluate_by,max_groups,bool(d_obj.get("extended_search",False)))
     add_strategies(district,strategies_to_run,isp_threshold)
 
     return Optimization(district,state,evaluate_by,max_groups,isp_threshold)
