@@ -24,6 +24,28 @@ const theme = createTheme({
   },
   shape: { borderRadius: 10 },
   components: {
+    // Every MUI input injects its own copy of two autofill keyframes. Emotion
+    // adds a <style> tag per copy, and each insert slows as <head> fills, so a
+    // 793-school table (six inputs a row) took minutes just to appear. Turn the
+    // per-input copy off and declare the keyframes once, here, instead. The
+    // animation itself is kept on each input: MUI listens for it to notice
+    // browser autofill and shrink the field's label.
+    MuiCssBaseline: {
+      styleOverrides: {
+        "@keyframes mui-auto-fill": { from: { animationName: "mui-auto-fill" } },
+        "@keyframes mui-auto-fill-cancel": { from: { animationName: "mui-auto-fill-cancel" } },
+      },
+    },
+    MuiInputBase: {
+      defaultProps: { disableInjectingGlobalStyles: true },
+      styleOverrides: {
+        input: {
+          animationName: "mui-auto-fill-cancel",
+          animationDuration: "10ms",
+          "&:-webkit-autofill": { animationDuration: "5000s", animationName: "mui-auto-fill" },
+        },
+      },
+    },
     MuiPaper: { styleOverrides: { root: { backgroundImage: "none" } } },
     MuiTableCell: { styleOverrides: { head: { fontWeight: 700, whiteSpace: "nowrap" } } },
     MuiButton: { defaultProps: { disableElevation: true } },

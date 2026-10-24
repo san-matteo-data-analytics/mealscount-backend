@@ -40,6 +40,8 @@ export interface DistrictSettings {
   max_groups: number;
   /** What "best" means when ranking strategies. */
   evaluate_by: EvaluateBy;
+  /** Also run the 9 minute CPSAT search. Ignored at 16 schools or fewer, where Exact proves the optimum. */
+  extended_search: boolean;
 }
 
 export type HhfkaSixty = "less" | "more" | "max";

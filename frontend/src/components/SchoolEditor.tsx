@@ -64,7 +64,122 @@ const HEADERS: { label: string; hint: string; width?: number }[] = [
   { label: "", hint: "Remove this school", width: 52 },
 ];
 
-export default function SchoolEditor({
+const codeInputSlotProps = { input: { sx: { fontSize: "0.75rem", color: "text.secondary" } } } as const;
+
+/**
+ * One editable row. Memoised, with callbacks that never change identity, so a
+ * keystroke re-renders only the row being edited. Each row is a dozen MUI
+ * components; re-rendering every row on every keystroke made a 200-school
+ * district lag by a third of a second or more per character.
+ */
+const SchoolRow = React.memo(function SchoolRow({
+  school: s,
+  idx,
+  ispThreshold,
+  onPatch,
+  onRemove,
+}: {
+  school: SchoolInput;
+  idx: number;
+  ispThreshold: number;
+  onPatch: (idx: number, patch: Partial<SchoolInput>) => void;
+  onRemove: (idx: number) => void;
+}) {
+  const enrolled = n(s.total_enrolled);
+  const isp = enrolled > 0 ? n(s.total_eligible) / enrolled : 0;
+  const chip = ispChip(isp, ispThreshold);
+  const inactive = s.active === false;
+  return (
+    <TableRow hover sx={{ opacity: inactive ? 0.45 : 1 }}>
+      <TableCell>
+        <Checkbox
+          size="small"
+          checked={s.active !== false}
+          onChange={(e) => onPatch(idx, { active: e.target.checked })}
+          inputProps={{ "aria-label": `Include ${s.school_name}` }}
+        />
+      </TableCell>
+      <TableCell>
+        <Stack spacing={0.5}>
+          <TextField
+            size="small"
+            variant="standard"
+            value={s.school_name}
+            onChange={(e) => onPatch(idx, { school_name: e.target.value })}
+            placeholder="School name"
+            sx={{ minWidth: 170 }}
+          />
+          <TextField
+            size="small"
+            variant="standard"
+            value={s.school_code}
+            onChange={(e) => onPatch(idx, { school_code: e.target.value })}
+            placeholder="code"
+            slotProps={codeInputSlotProps}
+          />
+        </Stack>
+      </TableCell>
+      <TableCell>
+        <TextField
+          size="small"
+          type="number"
+          value={s.total_enrolled}
+          onChange={(e) => onPatch(idx, { total_enrolled: e.target.value })}
+          sx={numberFieldSx}
+        />
+      </TableCell>
+      <TableCell>
+        <TextField
+          size="small"
+          type="number"
+          value={s.total_eligible}
+          onChange={(e) => onPatch(idx, { total_eligible: e.target.value })}
+          sx={numberFieldSx}
+          error={n(s.total_eligible) > enrolled}
+          helperText={n(s.total_eligible) > enrolled ? "more than enrollment" : undefined}
+        />
+      </TableCell>
+      <TableCell>
+        <Tooltip title={chip.title} arrow>
+          <Chip size="small" label={pct(isp, 0)} color={chip.color} variant="filled" />
+        </Tooltip>
+      </TableCell>
+      <TableCell>
+        <TextField
+          size="small"
+          type="number"
+          value={s.daily_breakfast_served}
+          onChange={(e) => onPatch(idx, { daily_breakfast_served: e.target.value })}
+          sx={numberFieldSx}
+        />
+      </TableCell>
+      <TableCell>
+        <TextField
+          size="small"
+          type="number"
+          value={s.daily_lunch_served}
+          onChange={(e) => onPatch(idx, { daily_lunch_served: e.target.value })}
+          sx={numberFieldSx}
+        />
+      </TableCell>
+      <TableCell align="center">
+        <Checkbox
+          size="small"
+          checked={Boolean(s.severe_need)}
+          onChange={(e) => onPatch(idx, { severe_need: e.target.checked })}
+          inputProps={{ "aria-label": `Severe need for ${s.school_name}` }}
+        />
+      </TableCell>
+      <TableCell>
+        <IconButton size="small" aria-label={`Remove ${s.school_name}`} onClick={() => onRemove(idx)}>
+          <DeleteOutlineIcon fontSize="small" />
+        </IconButton>
+      </TableCell>
+    </TableRow>
+  );
+});
+
+function SchoolEditor({
   schools,
   onChange,
   ispThreshold,
@@ -76,8 +191,19 @@ export default function SchoolEditor({
   districtName?: string;
 }) {
   const [exportAnchor, setExportAnchor] = React.useState<null | HTMLElement>(null);
-  const update = (idx: number, patch: Partial<SchoolInput>) =>
+
+  // Rows get stable callbacks that read the latest list through a ref, so the
+  // callbacks themselves never change and SchoolRow's memo holds.
+  const latest = React.useRef({ schools, onChange });
+  latest.current = { schools, onChange };
+  const update = React.useCallback((idx: number, patch: Partial<SchoolInput>) => {
+    const { schools, onChange } = latest.current;
     onChange(schools.map((s, i) => (i === idx ? { ...s, ...patch } : s)));
+  }, []);
+  const remove = React.useCallback((idx: number) => {
+    const { schools, onChange } = latest.current;
+    onChange(schools.filter((_, i) => i !== idx));
+  }, []);
 
   const totals = schools.reduce(
     (acc, s) => {
@@ -165,107 +291,22 @@ export default function SchoolEditor({
             </TableRow>
           </TableHead>
           <TableBody>
-            {schools.map((s, idx) => {
-              const enrolled = n(s.total_enrolled);
-              const isp = enrolled > 0 ? n(s.total_eligible) / enrolled : 0;
-              const chip = ispChip(isp, ispThreshold);
-              const inactive = s.active === false;
-              return (
-                <TableRow key={idx} hover sx={{ opacity: inactive ? 0.45 : 1 }}>
-                  <TableCell>
-                    <Checkbox
-                      size="small"
-                      checked={s.active !== false}
-                      onChange={(e) => update(idx, { active: e.target.checked })}
-                      inputProps={{ "aria-label": `Include ${s.school_name}` }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Stack spacing={0.5}>
-                      <TextField
-                        size="small"
-                        variant="standard"
-                        value={s.school_name}
-                        onChange={(e) => update(idx, { school_name: e.target.value })}
-                        placeholder="School name"
-                        sx={{ minWidth: 170 }}
-                      />
-                      <TextField
-                        size="small"
-                        variant="standard"
-                        value={s.school_code}
-                        onChange={(e) => update(idx, { school_code: e.target.value })}
-                        placeholder="code"
-                        slotProps={{ input: { sx: { fontSize: "0.75rem", color: "text.secondary" } } }}
-                      />
-                    </Stack>
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      size="small"
-                      type="number"
-                      value={s.total_enrolled}
-                      onChange={(e) => update(idx, { total_enrolled: e.target.value })}
-                      sx={numberFieldSx}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      size="small"
-                      type="number"
-                      value={s.total_eligible}
-                      onChange={(e) => update(idx, { total_eligible: e.target.value })}
-                      sx={numberFieldSx}
-                      error={n(s.total_eligible) > enrolled}
-                      helperText={n(s.total_eligible) > enrolled ? "more than enrollment" : undefined}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Tooltip title={chip.title} arrow>
-                      <Chip size="small" label={pct(isp, 0)} color={chip.color} variant="filled" />
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      size="small"
-                      type="number"
-                      value={s.daily_breakfast_served}
-                      onChange={(e) => update(idx, { daily_breakfast_served: e.target.value })}
-                      sx={numberFieldSx}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      size="small"
-                      type="number"
-                      value={s.daily_lunch_served}
-                      onChange={(e) => update(idx, { daily_lunch_served: e.target.value })}
-                      sx={numberFieldSx}
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <Checkbox
-                      size="small"
-                      checked={Boolean(s.severe_need)}
-                      onChange={(e) => update(idx, { severe_need: e.target.checked })}
-                      inputProps={{ "aria-label": `Severe need for ${s.school_name}` }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <IconButton
-                      size="small"
-                      aria-label={`Remove ${s.school_name}`}
-                      onClick={() => onChange(schools.filter((_, i) => i !== idx))}
-                    >
-                      <DeleteOutlineIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {schools.map((s, idx) => (
+              <SchoolRow
+                key={idx}
+                school={s}
+                idx={idx}
+                ispThreshold={ispThreshold}
+                onPatch={update}
+                onRemove={remove}
+              />
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
     </Paper>
   );
 }
+
+// Memoised so typing in the district settings above does not re-render the table.
+export default React.memo(SchoolEditor);

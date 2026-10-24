@@ -117,6 +117,24 @@ export const STRATEGIES: StrategyDoc[] = [
     cost: "moderate",
     autoRun: "large districts only",
   },
+  {
+    key: "CPSAT",
+    label: "Extended solver search",
+    tagline: "Give it more time, and it keeps finding a little more.",
+    how: "Hands the whole problem to a mathematical solver that uses every processor core and keeps searching for as long as you allow. It starts from the best grouping the other approaches found and only replaces it with something better, so it can never make the answer worse. If it finishes, the answer is guaranteed best; if time runs out, it reports how far from the best the answer could possibly be.",
+    when: "Large districts where you can wait for a slightly better grouping. Turn on Extended search in the district settings to run it for 9 minutes at the end of the optimization. The gains are usually small, a fraction of a percent, but real.",
+    cost: "expensive",
+    autoRun: "on request",
+  },
+  {
+    key: "Genetic",
+    label: "Evolved groupings",
+    tagline: "Breed good groupings together and keep the best offspring.",
+    how: "Keeps a population of complete groupings. Each round it combines pairs of good ones, taking whole groups from one and filling in the rest from the other, then tidies each result by moving single schools wherever that earns more. The best grouping always survives to the next round, and it starts from what the other approaches found, so it cannot make the answer worse. The same district always produces the same result.",
+    when: "Large districts, where on every district we measured it matched or beat the guided search, usually in less time. It does not guarantee the best answer, and it does not say how far from the best it might be.",
+    cost: "expensive",
+    autoRun: "large districts only",
+  },
 ];
 
 /** Friendly name for a grouping approach, for results the optimizer reports by its internal name. */

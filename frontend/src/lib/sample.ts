@@ -27,6 +27,7 @@ export const SAMPLE_SETTINGS: DistrictSettings = {
   hhfka_sixty: "more",
   max_groups: 10,
   evaluate_by: "reimbursement",
+  extended_search: false,
 };
 
 export const EMPTY_SCHOOL: SchoolInput = {

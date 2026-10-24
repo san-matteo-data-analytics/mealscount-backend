@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Box from "@mui/material/Box";
+import Checkbox from "@mui/material/Checkbox";
 import FormControl from "@mui/material/FormControl";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormHelperText from "@mui/material/FormHelperText";
@@ -18,6 +19,9 @@ import { pct, rateTier, RATE_TIER_LABEL } from "@/lib/cep";
 import { mergeStates, US_JURISDICTIONS } from "@/lib/states";
 import type { StateOption } from "@/lib/states";
 import type { DistrictSettings, EvaluateBy, HhfkaSixty } from "@/lib/types";
+
+/** Mirrors EXACT_MAX_SCHOOLS in server.py -- above this, optimality is not proven. */
+const EXACT_MAX_SCHOOLS = 16;
 
 /**
  * The picker starts from the full jurisdiction list so it works before (or
@@ -54,16 +58,22 @@ export default function SettingsPanel({
   settings,
   onChange,
   schoolCount,
+  showExtendedSearch = true,
 }: {
   settings: DistrictSettings;
   onChange: (s: DistrictSettings) => void;
   /** Schools that will be sent to the optimizer. More groups than this is meaningless. */
   schoolCount: number;
+  /** Off where the endpoint does not run the extended search (the comparison page). */
+  showExtendedSearch?: boolean;
 }) {
   const set = <K extends keyof DistrictSettings>(key: K, value: DistrictSettings[K]) =>
     onChange({ ...settings, [key]: value });
 
   const states = useStates(settings.state_code);
+
+  // Exact already proves the optimum at this size, so the extended search adds nothing.
+  const extendedSearchApplies = schoolCount === 0 || schoolCount > EXACT_MAX_SCHOOLS;
 
   // Before any schools are loaded there is nothing to cap against.
   const maxGroupsCap = schoolCount > 0 ? schoolCount : undefined;
@@ -223,6 +233,26 @@ export default function SettingsPanel({
             Adds the performance-based 7¢ per lunch your SFA has earned.
           </FormHelperText>
         </Box>
+
+        {showExtendedSearch && (
+          <Box>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={settings.extended_search && extendedSearchApplies}
+                  disabled={!extendedSearchApplies}
+                  onChange={(e) => set("extended_search", e.target.checked)}
+                />
+              }
+              label="Extended search"
+            />
+            <FormHelperText sx={{ mt: -0.5 }}>
+              {extendedSearchApplies
+                ? "Searches 9 minutes longer for a slightly better grouping. Usually adds a fraction of a percent."
+                : `Not needed at ${EXACT_MAX_SCHOOLS} schools or fewer — the best grouping is already guaranteed.`}
+            </FormHelperText>
+          </Box>
+        )}
       </Box>
     </Paper>
   );

@@ -231,7 +231,12 @@ export default function ComparePage() {
           ) : null}
         </Stack>
 
-        <SettingsPanel settings={settings} onChange={setSettings} schoolCount={activeCount} />
+        <SettingsPanel
+          settings={settings}
+          onChange={setSettings}
+          schoolCount={activeCount}
+          showExtendedSearch={false}
+        />
 
         <Box>
           <Button

@@ -299,3 +299,193 @@ class IntervalDPStrategyTestCase(unittest.TestCase,CEPTestMixin):
         self.assertEqual(sum(len(g.schools) for g in dp.groups),120)
         self.assertFalse(dp.optimal)  # contiguous-optimal only, and it says so
         self.assertIn("contiguous",dp.optimality_basis)
+
+
+class CPSATStrategyTestCase(unittest.TestCase,CEPTestMixin):
+    '''CPSAT claims optimality when the solver proves it, and promises never to
+    return less than the grouping it was warm-started from.'''
+
+    def mk_district(self,specs,**kwargs):
+        d = CEPDistrict(name="CPSAT District",code="CPSAT",**kwargs)
+        for i,(isp,enrolled,bkfst,lunch) in enumerate(specs):
+            d.add_school(self.mk_school(d,str(i),isp,enrolled,bkfst,lunch))
+        return d
+
+    def run_strategy(self,district,spec,before=()):
+        '''Run spec last, after any strategies in before, as the server would.'''
+        strategies = []
+        for s in tuple(before) + (spec,):
+            Klass,params,name = parse_strategy(s)
+            strategies.append(Klass(params,name))
+        district.strategies = strategies
+        district.run_strategies()
+        return strategies[-1]
+
+    def random_specs(self,rnd,n):
+        specs = []
+        for _ in range(n):
+            enrolled = rnd.randint(100,1200)
+            specs.append((rnd.uniform(0.05,0.62), enrolled,
+                          round(enrolled*0.2852*rnd.uniform(0.7,1.3)),
+                          round(enrolled*0.5998*rnd.uniform(0.7,1.3))))
+        return specs
+
+    def test_matches_exact(self):
+        '''Same optimum as the subset DP, on districts small enough for both.'''
+        rnd = random.Random(5150)
+        for _ in range(12):
+            specs = self.random_specs(rnd,rnd.randint(2,8))
+            exact = self.run_strategy(self.mk_district(specs),"Exact")
+            cpsat = self.run_strategy(self.mk_district(specs),"CPSAT?time_limit=30")
+            self.assertAlmostEqual(cpsat.reimbursement,exact.reimbursement,delta=0.05)
+            self.assertTrue(cpsat.optimal)
+
+    def test_matches_exact_on_coverage(self):
+        rnd = random.Random(77)
+        for _ in range(6):
+            specs = self.random_specs(rnd,rnd.randint(3,7))
+            exact = self.run_strategy(self.mk_district(specs),"Exact?evaluate_by=coverage")
+            cpsat = self.run_strategy(self.mk_district(specs),"CPSAT?evaluate_by=coverage&time_limit=30")
+            self.assertEqual(cpsat.students_covered,exact.students_covered)
+
+    def test_never_worse_than_its_warm_start(self):
+        '''Given almost no time on a large district it may not improve, but it
+        must hand back at least what the earlier strategies found.'''
+        rnd = random.Random(31)
+        specs = self.random_specs(rnd,60)
+        district = self.mk_district(specs)
+        cpsat = self.run_strategy(district,"CPSAT?time_limit=1&max_groups=10",
+                                  before=("Spread","Binning","Pairs"))
+        prior = max(s.reimbursement for s in district.strategies[:-1] if len(s.groups) <= 10)
+        self.assertGreaterEqual(cpsat.reimbursement,prior - 0.005)
+        self.assertLessEqual(len(cpsat.groups),10)
+
+    def test_partitions_every_school_once(self):
+        district = self.mk_district([(0.9,500,100,300),(0.5,800,200,500),
+                                     (0.2,300,50,150),(0.1,200,40,120)])
+        cpsat = self.run_strategy(district,"CPSAT?time_limit=10")
+        placed = sorted(s.code for g in cpsat.groups for s in g.schools)
+        self.assertEqual(placed,sorted(s.code for s in district.schools))
+
+    def test_respects_max_groups(self):
+        specs = [(0.9,400,80,240),(0.75,500,90,300),(0.15,600,100,360),(0.1,300,50,180)]
+        cpsat = self.run_strategy(self.mk_district(specs),"CPSAT?max_groups=2&time_limit=10")
+        self.assertLessEqual(len(cpsat.groups),2)
+        exact = self.run_strategy(self.mk_district(specs),"Exact?max_groups=2")
+        self.assertAlmostEqual(cpsat.reimbursement,exact.reimbursement,delta=0.05)
+
+    def test_reported_value_matches_rescoring(self):
+        district = self.mk_district([(0.85,520,291,411),(0.4,450,158,315),
+                                     (0.22,380,95,228),(0.5,600,200,400)])
+        cpsat = self.run_strategy(district,"CPSAT?time_limit=10")
+        rescored = sum(
+            CEPGroup(district,"g%i"%i,list(g.schools)).est_reimbursement()
+            for i,g in enumerate(cpsat.groups))
+        self.assertAlmostEqual(cpsat.reimbursement,rescored,places=2)
+
+    def test_high_isp_shortcut_is_one_group(self):
+        district = self.mk_district([(0.8,500,100,300),(0.9,700,200,400)])
+        cpsat = self.run_strategy(district,"CPSAT")
+        self.assertEqual(len(cpsat.groups),1)
+        self.assertTrue(cpsat.optimal)
+
+    def test_reports_gap_when_not_proven(self):
+        '''Stopped short of proof, it says how far off it could be rather than
+        claiming optimality.'''
+        rnd = random.Random(8)
+        district = self.mk_district(self.random_specs(rnd,80))
+        cpsat = self.run_strategy(district,"CPSAT?time_limit=2&max_groups=10")
+        self.assertEqual(sum(len(g.schools) for g in cpsat.groups),80)
+        if not cpsat.optimal:
+            self.assertIn("no grouping can earn more than",cpsat.optimality_basis)
+
+
+class GeneticStrategyTestCase(unittest.TestCase,CEPTestMixin):
+    '''Genetic proves nothing, so what matters is that it never lies: it must
+    not beat the proven optimum, must place every school once, must hand back
+    at least its warm start, and must be repeatable for a fixed seed.'''
+
+    mk_district = CPSATStrategyTestCase.mk_district
+    run_strategy = CPSATStrategyTestCase.run_strategy
+    random_specs = CPSATStrategyTestCase.random_specs
+
+    def test_never_beats_and_usually_matches_exact(self):
+        rnd = random.Random(5150)
+        hits, ratios = 0, []
+        for _ in range(20):
+            specs = self.random_specs(rnd,rnd.randint(2,9))
+            exact = self.run_strategy(self.mk_district(specs),"Exact")
+            ga = self.run_strategy(self.mk_district(specs),"Genetic")
+            self.assertLessEqual(ga.reimbursement,exact.reimbursement + 0.05)
+            ratios.append(ga.reimbursement / exact.reimbursement if exact.reimbursement else 1)
+            hits += abs(ga.reimbursement - exact.reimbursement) <= 0.05
+        self.assertGreaterEqual(hits,18)              # small districts: nearly always optimal
+        self.assertGreater(min(ratios),0.99)
+
+    def test_coverage_never_beats_exact(self):
+        rnd = random.Random(77)
+        for _ in range(6):
+            specs = self.random_specs(rnd,rnd.randint(3,7))
+            exact = self.run_strategy(self.mk_district(specs),"Exact?evaluate_by=coverage")
+            ga = self.run_strategy(self.mk_district(specs),"Genetic?evaluate_by=coverage")
+            self.assertLessEqual(ga.students_covered,exact.students_covered)
+
+    def test_partitions_and_respects_max_groups(self):
+        rnd = random.Random(3)
+        district = self.mk_district(self.random_specs(rnd,40))
+        ga = self.run_strategy(district,"Genetic?max_groups=6&generations=20")
+        placed = sorted(s.code for g in ga.groups for s in g.schools)
+        self.assertEqual(placed,sorted(s.code for s in district.schools))
+        self.assertLessEqual(len(ga.groups),6)
+        self.assertTrue(all(g.schools for g in ga.groups))
+
+    def test_not_worse_than_warm_start(self):
+        rnd = random.Random(31)
+        district = self.mk_district(self.random_specs(rnd,60))
+        ga = self.run_strategy(district,"Genetic?max_groups=10&generations=5",
+                               before=("Spread","Binning","Pairs"))
+        prior = max(s.reimbursement for s in district.strategies[:-1] if len(s.groups) <= 10)
+        self.assertGreaterEqual(ga.reimbursement,prior - 0.05)
+
+    def test_reported_value_matches_rescoring(self):
+        rnd = random.Random(12)
+        district = self.mk_district(self.random_specs(rnd,25))
+        ga = self.run_strategy(district,"Genetic?generations=20")
+        rescored = sum(
+            CEPGroup(district,"g%i"%i,list(g.schools)).est_reimbursement()
+            for i,g in enumerate(ga.groups))
+        self.assertAlmostEqual(ga.reimbursement,rescored,places=2)
+
+    def test_deterministic_for_a_seed(self):
+        specs = self.random_specs(random.Random(21),30)
+        runs = [self.run_strategy(self.mk_district(specs),"Genetic?seed=7&generations=30")
+                for _ in range(2)]
+        self.assertEqual(runs[0].reimbursement,runs[1].reimbursement)
+        self.assertEqual(
+            sorted(sorted(s.code for s in g.schools) for g in runs[0].groups),
+            sorted(sorted(s.code for s in g.schools) for g in runs[1].groups))
+
+    def test_high_isp_shortcut_is_one_group(self):
+        district = self.mk_district([(0.8,500,100,300),(0.9,700,200,400)])
+        ga = self.run_strategy(district,"Genetic")
+        self.assertEqual(len(ga.groups),1)
+        self.assertTrue(ga.optimal)
+
+    def test_finds_the_group_just_above_the_threshold(self):
+        '''Low-ISP districts keep all their value in one group sitting just over
+        the floor, where no single-school move helps; only swaps get there.
+        Without swaps this falls short of Exact on 6 of these 10 districts.'''
+        short = 0
+        for trial in range(10):
+            rnd = random.Random(trial)
+            specs = []
+            for lo,hi,count in ((0.45,0.55,4),(0.03,0.17,9)):
+                for _ in range(count):
+                    enrolled = rnd.randint(300,1500)
+                    specs.append((rnd.uniform(lo,hi),enrolled,
+                                  round(enrolled*0.2852*rnd.uniform(0.7,1.3)),
+                                  round(enrolled*0.5998*rnd.uniform(0.7,1.3))))
+            exact = self.run_strategy(self.mk_district(specs),"Exact?max_groups=10")
+            ga = self.run_strategy(self.mk_district(specs),"Genetic?max_groups=10")
+            short += ga.reimbursement < exact.reimbursement - 0.05
+        self.assertLessEqual(short,2)
