@@ -23,6 +23,10 @@ import type { DistrictSettings, EvaluateBy, HhfkaSixty } from "@/lib/types";
 /** Mirrors EXACT_MAX_SCHOOLS in server.py -- above this, optimality is not proven. */
 const EXACT_MAX_SCHOOLS = 16;
 
+/** Mirrors EXTENDED_SEARCH_MINUTES_MIN/MAX in server.py, which clamps to the same range. */
+const EXTENDED_MINUTES_MIN = 9;
+const EXTENDED_MINUTES_MAX = 30;
+
 /**
  * The picker starts from the full jurisdiction list so it works before (or
  * without) the API, then merges in whatever /api/states/ reports so states
@@ -80,6 +84,17 @@ export default function SettingsPanel({
 
   // The field holds its own text so it can be cleared mid-edit; only a valid
   // whole number in range is committed, and blur snaps the text back to it.
+  const [minutesDraft, setMinutesDraft] = React.useState(String(settings.extended_search_minutes));
+  React.useEffect(
+    () => setMinutesDraft(String(settings.extended_search_minutes)),
+    [settings.extended_search_minutes],
+  );
+  const validMinutes = (text: string) => {
+    const v = Number(text);
+    return text !== "" && Number.isInteger(v) && v >= EXTENDED_MINUTES_MIN && v <= EXTENDED_MINUTES_MAX;
+  };
+  const minutesDraftValid = validMinutes(minutesDraft);
+
   const [groupsDraft, setGroupsDraft] = React.useState(String(settings.max_groups));
   React.useEffect(() => setGroupsDraft(String(settings.max_groups)), [settings.max_groups]);
   const draftGroups = Number(groupsDraft);
@@ -248,9 +263,33 @@ export default function SettingsPanel({
             />
             <FormHelperText sx={{ mt: -0.5 }}>
               {extendedSearchApplies
-                ? "Searches 9 minutes longer for a slightly better grouping. Usually adds a fraction of a percent."
+                ? "Searches longer for a slightly better grouping. Usually adds a fraction of a percent."
                 : `Not needed at ${EXACT_MAX_SCHOOLS} schools or fewer — the best grouping is already guaranteed.`}
             </FormHelperText>
+            {settings.extended_search && extendedSearchApplies && (
+              <TextField
+                label="Extended search minutes"
+                size="small"
+                fullWidth
+                type="number"
+                sx={{ mt: 1.5 }}
+                value={minutesDraft}
+                error={!minutesDraftValid}
+                slotProps={{
+                  htmlInput: { min: EXTENDED_MINUTES_MIN, max: EXTENDED_MINUTES_MAX, step: 1 },
+                }}
+                onChange={(e) => {
+                  setMinutesDraft(e.target.value);
+                  if (validMinutes(e.target.value)) set("extended_search_minutes", Number(e.target.value));
+                }}
+                onBlur={() => setMinutesDraft(String(settings.extended_search_minutes))}
+                helperText={
+                  minutesDraftValid
+                    ? "Extra time added to the end of the run."
+                    : `Enter a whole number of minutes from ${EXTENDED_MINUTES_MIN} to ${EXTENDED_MINUTES_MAX}.`
+                }
+              />
+            )}
           </Box>
         )}
       </Box>

@@ -311,12 +311,18 @@ How it behaves:
   return a slightly different grouping on each run.
 
 It is off by default. The optimizer page has an **Extended search** checkbox
-(unchecked by default) that sends `extended_search: true`; above 16 schools the
-API then runs `CPSAT` last, after `Genetic`, for `EXTENDED_SEARCH_SECONDS`
-(default 540, i.e. 9 minutes). Keep that under 10 minutes: the frontend proxy's
-timeout is an idle timeout, which the streaming endpoint's 5 second heartbeats
-reset, but the blocking `/optimize/` endpoint sends nothing until it finishes.
-For longer runs, use the command line:
+(unchecked by default); checking it reveals a minutes field (default 9, whole
+minutes from 9 to 30). The request carries `extended_search: true` and
+`extended_search_minutes`, and above 16 schools the API runs `CPSAT` last,
+after `Genetic`, for that long. The server clamps the minutes to the same range
+(`EXTENDED_SEARCH_MINUTES_MIN`/`_MAX` in `server.py`), so a hand-written request
+cannot ask for more.
+
+Runs past 10 minutes depend on the streaming endpoint: the frontend proxy's
+timeout is an idle timeout, which the stream's 5 second heartbeats reset, but
+the blocking `/optimize/` fallback sends nothing until it finishes and will be
+cut off. A deployed server also needs its worker timeout (gunicorn defaults to
+30s) raised to cover the longest run. For longer runs, use the command line:
 
     $> python compare_strategies.py data/ca/latest.csv --min-schools 17 --max-schools 60 \
            --strategies NYCMODA --strategies "CPSAT?time_limit=600"

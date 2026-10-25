@@ -28,6 +28,7 @@ export const SAMPLE_SETTINGS: DistrictSettings = {
   max_groups: 10,
   evaluate_by: "reimbursement",
   extended_search: false,
+  extended_search_minutes: 9,
 };
 
 export const EMPTY_SCHOOL: SchoolInput = {
