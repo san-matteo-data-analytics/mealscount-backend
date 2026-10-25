@@ -122,7 +122,7 @@ export const STRATEGIES: StrategyDoc[] = [
     label: "Extended solver search",
     tagline: "Give it more time, and it keeps finding a little more.",
     how: "Hands the whole problem to a mathematical solver that uses every processor core and keeps searching for as long as you allow. It starts from the best grouping the other approaches found and only replaces it with something better, so it can never make the answer worse. If it finishes, the answer is guaranteed best; if time runs out, it reports how far from the best the answer could possibly be.",
-    when: "Large districts where you can wait for a slightly better grouping. Turn on Extended search in the district settings to run it for 9 minutes at the end of the optimization. The gains are usually small, a fraction of a percent, but real.",
+    when: "Large districts where you can wait for a slightly better grouping. Turn on Extended search in the district settings to run it at the end of the optimization, for 9 to 30 minutes. The gains are usually small, a fraction of a percent, but real.",
     cost: "expensive",
     autoRun: "on request",
   },

@@ -238,7 +238,7 @@ export default function OptimizerPage() {
                       ? "At this size the tool can work out the single best grouping there is, and it comes back right away."
                       : `Above ${EXACT_MAX_SCHOOLS} schools there are too many combinations to settle outright, so the tool searches instead. Allow about a minute at 40 schools, longer for a bigger district. Each grouping appears as it finishes.`}
                   {activeSchools.length > EXACT_MAX_SCHOOLS && settings.extended_search &&
-                    " Extended search is on, which adds 9 minutes at the end."}
+                    ` Extended search is on, which adds ${settings.extended_search_minutes} minutes at the end.`}
                 </Typography>
               </Box>
               <Button
