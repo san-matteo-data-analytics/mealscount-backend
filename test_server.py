@@ -298,10 +298,19 @@ def test_large_districts_run_genetic_last_by_default():
     assert names[-1] == "Genetic"
     assert "CPSAT" not in names
 
-def test_extended_search_adds_cpsat_after_genetic():
+def test_extended_search_splits_time_between_genetic_and_cpsat():
     specs = server.default_strategies(40,"reimbursement",10,extended_seconds=540)
     assert [s.split("?")[0] for s in specs][-2:] == ["Genetic","CPSAT"]
-    assert "time_limit=540" in specs[-1]
+    # The GA runs its half with no stop rule; CPSAT gets the rest.
+    assert "time_limit=270" in specs[-2] and "patience=0" in specs[-2] and "generations=0" in specs[-2]
+    assert "time_limit=270" in specs[-1]
+    # Odd budgets still add up to the time asked for.
+    odd = server.default_strategies(40,"reimbursement",10,extended_seconds=541)
+    assert "time_limit=270" in odd[-2] and "time_limit=271" in odd[-1]
+
+def test_normal_run_keeps_the_genetic_stop_rule():
+    genetic = server.default_strategies(40,"reimbursement",10)[-1]
+    assert genetic.startswith("Genetic?") and "patience" not in genetic and "time_limit" not in genetic
 
 def test_extended_search_ignored_where_exact_proves_the_optimum():
     names = [s.split("?")[0] for s in server.default_strategies(12,"reimbursement",10,extended_seconds=540)]

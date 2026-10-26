@@ -1,6 +1,7 @@
 from . import STRATEGIES
 import unittest
 import random
+import time
 from .base import CEPDistrict,CEPSchool,CEPGroup,CEPRate
 from cep_estimatory import parse_strategy
 
@@ -489,3 +490,31 @@ class GeneticStrategyTestCase(unittest.TestCase,CEPTestMixin):
             ga = self.run_strategy(self.mk_district(specs),"Genetic?max_groups=10")
             short += ga.reimbursement < exact.reimbursement - 0.05
         self.assertLessEqual(short,2)
+
+    def test_fast_value_matches_group_value(self):
+        '''_polish scores with an inlined copy of _group_value for speed; the
+        two must agree everywhere, including at the threshold and the cap.'''
+        rnd = random.Random(99)
+        district = self.mk_district(self.random_specs(rnd,12))
+        for mode in ("reimbursement","coverage"):
+            ga = self.run_strategy(district,"Genetic?evaluate_by=%s&generations=2" % mode)
+            fast = ga._value_fn()
+            cases = [(0,0,0.0,0.0),(250,1000,10.0,20.0),(2499,10000,5.0,7.0),
+                     (24995,100000,5.0,7.0),(625,1000,3.0,9.0),(900,1000,3.0,9.0),(0,500,4.0,4.0)]
+            cases += [(rnd.randint(0,2000),rnd.randint(1,3000),rnd.uniform(0,5000),rnd.uniform(0,5000))
+                      for _ in range(500)]
+            for E,N,A,D in cases:
+                self.assertEqual(fast(E,N,A,D),ga._group_value(E,N,A,D),(mode,E,N,A,D))
+
+    def test_no_stop_rule_runs_until_time_limit(self):
+        '''patience=0 and generations=0 mean "run for time_limit, however
+        stale" -- the extended search relies on this.'''
+        rnd = random.Random(4)
+        district = self.mk_district(self.random_specs(rnd,25))
+        started = time.time()
+        ga = self.run_strategy(district,"Genetic?patience=0&generations=0&time_limit=3")
+        elapsed = time.time() - started
+        self.assertGreaterEqual(elapsed,3)
+        self.assertLess(elapsed,10)
+        placed = sorted(s.code for g in ga.groups for s in g.schools)
+        self.assertEqual(placed,sorted(s.code for s in district.schools))
