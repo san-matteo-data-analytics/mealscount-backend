@@ -316,10 +316,24 @@ How it behaves:
 It is off by default. The optimizer page has an **Extended search** checkbox
 (unchecked by default); checking it reveals a minutes field (default 9, whole
 minutes from 9 to 30). The request carries `extended_search: true` and
-`extended_search_minutes`, and above 16 schools the API runs `CPSAT` last,
-after `Genetic`, for that long. The server clamps the minutes to the same range
+`extended_search_minutes`. Above 16 schools the API then splits that time:
+`Genetic` runs the first half with its stop rule off (`patience=0`,
+`generations=0`), and `CPSAT`, warm-started from the GA's answer, runs the second
+half. The server clamps the minutes to the same range
 (`EXTENDED_SEARCH_MINUTES_MIN`/`_MAX` in `server.py`), so a hand-written request
 cannot ask for more.
+
+Why split it. On Denver (195 schools, modelled meals), 9 minutes, 3 seeds each:
+
+| how the 9 minutes were spent | 10 groups | 40 groups |
+| ---------------------------- | --------- | --------- |
+| all to `CPSAT` (the original behaviour) | $138,548.91 | $138,545.75 |
+| **half `Genetic`, half `CPSAT`** | **$138,554.01** | **$138,554.01** |
+| all to `Genetic` | $138,554.21 | $138,557.09 |
+
+Giving the GA time only helps with its stop rule off: left on, it quits once it
+stalls. All-GA edges the split at 40 groups, but keeping `CPSAT` is what lets
+an extended run be proven optimal, or say how close to optimal it is.
 
 Runs past 10 minutes depend on the streaming endpoint: the frontend proxy's
 timeout is an idle timeout, which the stream's 5 second heartbeats reset, but
@@ -380,9 +394,18 @@ It is in the default strategy set for districts above 16 schools, running last
 so it warm-starts from everything else. `NYCMODA` still runs too, so the
 results keep showing what the old workhorse found alongside it.
 
-Parameters: `population` (default 40), `generations` (200), `patience` (stop
-after this many generations without improvement, 40), `time_limit` (seconds,
-120), `seed` (42), `evaluate_by` (`reimbursement` or `coverage`), `max_groups`.
+Its local search (`_polish`) is nearly all of the run time and is written for
+speed. A long run's result is set by how many generations fit in the time, so
+at equal time this matters: on Denver with 40 groups and 500 seconds, the
+faster version averaged $138,557.04/day over six seeds against $138,551.39 for
+the plain one, the same algorithm. In a normal run the stop rule ends it before
+the difference shows; it pays off in extended search, which turns the stop rule
+off.
+
+Parameters: `population` (default 40), `generations` (200; 0 = no limit),
+`patience` (stop after this many generations without improvement, 40; 0 =
+never), `time_limit` (seconds, 120), `seed` (42), `evaluate_by`
+(`reimbursement` or `coverage`), `max_groups`.
 
 ## How much do the heuristics actually miss?
 

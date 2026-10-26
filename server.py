@@ -85,10 +85,21 @@ def default_strategies(school_count,evaluate_by,max_groups,extended_seconds=None
         strategies.append("GreedyLP")
     # Genetic and CPSAT warm-start from the best grouping already found, so
     # they run after everything they can learn from.
-    strategies.append("Genetic?max_groups=%s&evaluate_by=%s" % (max_groups,evaluate_by))
-    if extended_seconds:
-        strategies.append("CPSAT?time_limit=%s&max_groups=%s&evaluate_by=%s" % (
-            extended_seconds,max_groups,evaluate_by))
+    genetic = "Genetic?max_groups=%s&evaluate_by=%s" % (max_groups,evaluate_by)
+    if not extended_seconds:
+        strategies.append(genetic)
+        return strategies
+    # Extended search splits its time. The GA gets the first half with its stop
+    # rule off -- left on, it quits once it stalls and the extra time is wasted
+    # -- and CPSAT, warm-started from the GA's answer, gets the second half.
+    # Measured on a 195 school district over 9 minutes, half-and-half beat
+    # giving it all to CPSAT by ~$5-8/day at both 10 and 40 groups, and matched
+    # giving it all to the GA at 10 groups. Keeping CPSAT is what lets the
+    # result be proven optimal, or say how close to optimal it is.
+    ga_seconds = extended_seconds // 2
+    strategies.append(genetic + "&patience=0&generations=0&time_limit=%s" % ga_seconds)
+    strategies.append("CPSAT?time_limit=%s&max_groups=%s&evaluate_by=%s" % (
+        extended_seconds - ga_seconds,max_groups,evaluate_by))
     return strategies
 
 
