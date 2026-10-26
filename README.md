@@ -21,7 +21,10 @@ The python toolset can either be run from the example Jupyter notebook, the comm
 
 The web frontend is a Next.js + Material UI app in `frontend/` that talks to the server.py API (see `frontend/README.md`). The original Vue.js frontend still lives in the repo root (`src/`, `webpack.config.js`, the root `package.json`) but is no longer the one used for local development -- see [Legacy setup](#legacy-setup-vue-frontend-and-docker).
 
-The original web app is deployed to https://www.mealscount.com/ (hosted by Heroku).
+This copy is an internal tool: it runs on our own machines, within our
+organization, and is not hosted on a public web server. (The original
+MealsCount project ran a public version at https://www.mealscount.com/ on
+Heroku; that site is not part of this setup.)
 
 The cep_estimatory.py script will take in as an argument a specially formatted CSV file, and paramteres defining different optimization strategies, and output a JSON file as well as a data table that describes the results of the optimization per district. 
 
@@ -80,12 +83,12 @@ MEALSCOUNT_API_ORIGIN=http://127.0.0.1:5001 npm run dev
 Then open <http://localhost:3000>. The frontend hot-reloads as you edit; restart
 Flask after Python changes.
 
-To work on the UI without running Python at all, point the frontend at
-production instead:
-
-```bash
-MEALSCOUNT_API_ORIGIN=https://www.mealscount.com npm run dev
-```
+`MEALSCOUNT_API_ORIGIN` can point the frontend at any other copy of the API,
+for example one running on a colleague's machine on the internal network.
+(It can also point at the original project's public site,
+`https://www.mealscount.com`, to work on the UI without Python, but that API
+predates the streaming endpoint and the newer strategies, so results there will
+differ from a local run.)
 
 ## 4. Check it works
 
@@ -321,8 +324,10 @@ cannot ask for more.
 Runs past 10 minutes depend on the streaming endpoint: the frontend proxy's
 timeout is an idle timeout, which the stream's 5 second heartbeats reset, but
 the blocking `/optimize/` fallback sends nothing until it finishes and will be
-cut off. A deployed server also needs its worker timeout (gunicorn defaults to
-30s) raised to cover the longest run. For longer runs, use the command line:
+cut off. Run locally with `flask run` there is no other limit. If the API is
+ever set up on a shared internal machine behind gunicorn instead, raise its
+worker timeout (30s by default) to cover the longest run. For runs longer than
+30 minutes, use the command line:
 
     $> python compare_strategies.py data/ca/latest.csv --min-schools 17 --max-schools 60 \
            --strategies NYCMODA --strategies "CPSAT?time_limit=600"
