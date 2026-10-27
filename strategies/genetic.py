@@ -2,11 +2,116 @@ import itertools
 import random
 import time
 
+import numpy as np
+from numba import njit
+
 from .base import BaseCEPStrategy, CEPGroup, isp_to_free_rate
 
 # ISP at which the 1.6 multiplier saturates; at or above this one group is fully
 # funded and nothing can beat it.
 FULL_FUNDING_ISP = 1.0 / 1.6
+
+
+@njit(cache=True)
+def _float_above(E, N):
+    '''Sign of fl(E / N) - E / N, exactly: is the double Python would round
+    above, on, or below the true fraction? Dekker's product gives d * N with
+    its rounding error, and d * N - E then follows without loss.'''
+    d = E / N
+    b = float(N)
+    p = d * b
+    c = 134217729.0 * d
+    dh = c - (c - d)
+    dl = d - dh
+    c = 134217729.0 * b
+    bh = c - (c - b)
+    bl = b - bh
+    err = ((dh * bh - p) + dh * bl + dl * bh) + dl * bl
+    s = (p - E) + err
+    return 1 if s > 0 else (-1 if s < 0 else 0)
+
+
+@njit(cache=True)
+def _value(E, N, A, D, threshold, weight):
+    '''A group's value, compiled for _polish_kernel. It inlines
+    isp_to_free_rate, and a test pins it to _group_value's answers.
+
+    round(E / N, 4) is done in integers, because Numba's float round can
+    differ from Python's at the fourth decimal. Python rounds the double
+    nearest E / N, which for whole-number counts always rounds the same way as
+    the exact fraction -- except when the fraction sits exactly on a midpoint
+    (5181 / 20000 = 0.25905). Then the double is a hair above, below or on it,
+    and that decides: up, down, or half to even.'''
+    if N <= 0:
+        return 0.0
+    q = (E * 10000) // N
+    twice = 2 * ((E * 10000) % N)
+    if twice > N:
+        q += 1
+    elif twice == N:
+        side = _float_above(E, N)
+        if side > 0 or (side == 0 and q % 2 == 1):
+            q += 1
+    isp = q / 10000.0
+    free_rate = isp * 1.6
+    if free_rate > 1:
+        free_rate = 1.0
+    elif isp < threshold:
+        return 0.0
+    if free_rate == 0:
+        return 0.0      # not CEP eligible: earns nothing
+    return weight * N + A + free_rate * D
+
+
+@njit(cache=True)
+def _polish_kernel(labels, K, e, en, A, D, threshold, weight, seed):
+    '''The hill climb behind GeneticCEPStrategy._polish, compiled. Changes
+    labels in place and returns the grouping's total value.'''
+    np.random.seed(seed)
+    n = labels.shape[0]
+    TE = np.zeros(K, np.int64)
+    TN = np.zeros(K, np.int64)
+    TA = np.zeros(K)
+    TD = np.zeros(K)
+    for i in range(n):
+        g = labels[i]
+        TE[g] += e[i]; TN[g] += en[i]; TA[g] += A[i]; TD[g] += D[i]
+    val = np.empty(K)
+    for g in range(K):
+        val[g] = _value(TE[g], TN[g], TA[g], TD[g], threshold, weight)
+    failures, limit = 0, 3 * n
+    while failures < limit:
+        i = int(np.random.random() * n)
+        src = labels[i]
+        if np.random.random() < 0.5:
+            j = -1
+            dst = int(np.random.random() * K)
+        else:
+            j = int(np.random.random() * n)
+            dst = labels[j]
+        if src == dst:
+            failures += 1
+            continue
+        # Net change in each group's totals: i leaves src for dst, and on a
+        # swap j makes the reverse trip.
+        if j < 0:
+            de, dn, da, dd = e[i], en[i], A[i], D[i]
+        else:
+            de, dn, da, dd = e[i] - e[j], en[i] - en[j], A[i] - A[j], D[i] - D[j]
+        new_src = _value(TE[src] - de, TN[src] - dn, TA[src] - da, TD[src] - dd, threshold, weight)
+        new_dst = _value(TE[dst] + de, TN[dst] + dn, TA[dst] + da, TD[dst] + dd, threshold, weight)
+        if new_src + new_dst > val[src] + val[dst] + 1e-9:
+            TE[src] -= de; TN[src] -= dn; TA[src] -= da; TD[src] -= dd
+            TE[dst] += de; TN[dst] += dn; TA[dst] += da; TD[dst] += dd
+            val[src] = new_src
+            val[dst] = new_dst
+            labels[i] = dst
+            if j >= 0:
+                labels[j] = src
+            failures = 0
+        else:
+            failures += 1
+    return val.sum()
 
 
 class GeneticCEPStrategy(BaseCEPStrategy):
@@ -24,8 +129,9 @@ class GeneticCEPStrategy(BaseCEPStrategy):
 
     Scoring is incremental: each group keeps running totals, and a group's value
     is A_g + f_g * D_g with f_g from the same rounded ISP and isp_to_free_rate
-    that CEPGroup uses, so a move costs O(1) to evaluate. The final grouping is
-    re-scored by CEPGroup itself before it is reported.
+    that CEPGroup uses, so a move costs O(1) to evaluate. The hill climb, which
+    is nearly all of the run time, is compiled with Numba. The final grouping
+    is re-scored by CEPGroup itself before it is reported.
 
     The population is seeded with the best grouping any strategy that already
     ran on the district produced (so run it after them), and the best
@@ -98,7 +204,7 @@ class GeneticCEPStrategy(BaseCEPStrategy):
         pop = [self._polish(s) for s in seeds]
         while len(pop) < population:
             pop.append(self._polish(self._random_partition()))
-        scored = sorted(((self._fitness(p), p) for p in pop), key=lambda t: t[0], reverse=True)
+        scored = sorted(pop, key=lambda t: t[0], reverse=True)
 
         best_fit, best = scored[0]
         stale = 0
@@ -107,15 +213,14 @@ class GeneticCEPStrategy(BaseCEPStrategy):
         # time_limit. Long runs should: at 40 groups on a 195 school district
         # the GA was still improving well past where patience=40 gave up.
         for ran in (itertools.count(1) if generations <= 0 else range(1, generations + 1)):
-            elite = [p for _, p in scored[:2]]
+            elite = scored[:2]
             children = []
             while len(children) < population - len(elite):
                 a, b = self._tournament(scored), self._tournament(scored)
                 child = self._crossover(a, b) if rnd.random() < 0.9 else list(a)
                 self._mutate(child)
                 children.append(self._polish(child))
-            scored = sorted(((self._fitness(p), p) for p in elite + children),
-                            key=lambda t: t[0], reverse=True)
+            scored = sorted(elite + children, key=lambda t: t[0], reverse=True)
             if scored[0][0] > best_fit + 1e-9:
                 best_fit, best = scored[0]
                 stale = 0
@@ -154,7 +259,10 @@ class GeneticCEPStrategy(BaseCEPStrategy):
         self.en = [s.total_enrolled for s in schools]
         # Under coverage, students in an eligible group come first and dollars
         # only break ties: weight students above the most dollars possible.
-        self.coverage_weight = (sum(self.A) + sum(self.D) + 1) if evaluate_by == "coverage" else 0
+        self.coverage_weight = float(sum(self.A) + sum(self.D) + 1) if evaluate_by == "coverage" else 0.0
+        # The same constants as arrays, for _polish_kernel.
+        self.arrays = (np.array(self.e, np.int64), np.array(self.en, np.int64),
+                       np.array(self.A, np.float64), np.array(self.D, np.float64))
 
     def _group_value(self, E, N, A, D):
         if N == 0:
@@ -163,16 +271,6 @@ class GeneticCEPStrategy(BaseCEPStrategy):
         if free_rate == 0:
             return 0.0      # not CEP eligible: earns nothing
         return self.coverage_weight * N + A + free_rate * D
-
-    def _totals(self, labels):
-        t = [[0, 0, 0.0, 0.0] for _ in range(self.K)]
-        for i, g in enumerate(labels):
-            row = t[g]
-            row[0] += self.e[i]; row[1] += self.en[i]; row[2] += self.A[i]; row[3] += self.D[i]
-        return t
-
-    def _fitness(self, labels):
-        return sum(self._group_value(*row) for row in self._totals(labels))
 
     # -- operators -------------------------------------------------------------
 
@@ -250,70 +348,12 @@ class GeneticCEPStrategy(BaseCEPStrategy):
         member for a better school outside can. Without swaps the search
         stalled on low-ISP districts at three quarters of the optimum.
 
-        This is nearly all of the GA's run time, so it is written for speed:
-        totals in flat lists, the group value from _value_fn() rather than a
-        method call, no temporaries per step, and cheap random draws. That
-        roughly halves its cost, which matters because a long run's result is
-        set by how many generations fit in the time: at equal time on a 195
-        school district with 40 groups, this beat the plain version by about
-        $5.65/day.'''
-        labels = list(labels)
-        n, K = len(labels), self.K
-        e, en, A, D = self.e, self.en, self.A, self.D
-        value = self._value_fn()
-        TE, TN, TA, TD = [0] * K, [0] * K, [0.0] * K, [0.0] * K
-        for i, g in enumerate(labels):
-            TE[g] += e[i]; TN[g] += en[i]; TA[g] += A[i]; TD[g] += D[i]
-        val = [value(TE[g], TN[g], TA[g], TD[g]) for g in range(K)]
-        rand = self.rnd.random
-        failures, limit = 0, 3 * n
-        while failures < limit:
-            i = int(rand() * n)
-            src = labels[i]
-            if rand() < 0.5:
-                j = -1
-                dst = int(rand() * K)
-            else:
-                j = int(rand() * n)
-                dst = labels[j]
-            if src == dst:
-                failures += 1
-                continue
-            # Net change in each group's totals: i leaves src for dst, and on a
-            # swap j makes the reverse trip.
-            if j < 0:
-                de, dn, da, dd = e[i], en[i], A[i], D[i]
-            else:
-                de, dn, da, dd = e[i] - e[j], en[i] - en[j], A[i] - A[j], D[i] - D[j]
-            new_src = value(TE[src] - de, TN[src] - dn, TA[src] - da, TD[src] - dd)
-            new_dst = value(TE[dst] + de, TN[dst] + dn, TA[dst] + da, TD[dst] + dd)
-            if new_src + new_dst > val[src] + val[dst] + 1e-9:
-                TE[src] -= de; TN[src] -= dn; TA[src] -= da; TD[src] -= dd
-                TE[dst] += de; TN[dst] += dn; TA[dst] += da; TD[dst] += dd
-                val[src], val[dst] = new_src, new_dst
-                labels[i] = dst
-                if j >= 0:
-                    labels[j] = src
-                failures = 0
-            else:
-                failures += 1
-        return labels
-
-    def _value_fn(self):
-        '''_group_value as a closure, for the hot loop in _polish. It inlines
-        isp_to_free_rate, so a test pins the two to the same answers.'''
-        threshold, weight = self.isp_threshold, self.coverage_weight
-
-        def value(E, N, A, D):
-            if N <= 0:
-                return 0.0
-            isp = round(E / N, 4)
-            free_rate = isp * 1.6
-            if free_rate > 1:
-                free_rate = 1
-            elif isp < threshold:
-                return 0.0
-            if free_rate == 0:
-                return 0.0      # not CEP eligible: earns nothing
-            return weight * N + A + free_rate * D
-        return value
+        This is nearly all of the GA's run time, and a long run's result is
+        set by how many generations fit in the time, so the loop itself is
+        _polish_kernel, compiled by Numba. Its random draws come from NumPy,
+        seeded from self.rnd on each call, so a fixed seed still gives a fixed
+        result. Returns (fitness, labels).'''
+        arr = np.array(labels, np.int64)
+        fit = _polish_kernel(arr, self.K, *self.arrays, float(self.isp_threshold),
+                             self.coverage_weight, self.rnd.getrandbits(32))
+        return fit, arr.tolist()
