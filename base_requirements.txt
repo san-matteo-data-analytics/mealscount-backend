@@ -1,5 +1,6 @@
 click
 ortools
+numba
 pandas
 pytest
 tabulate

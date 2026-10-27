@@ -394,13 +394,25 @@ It is in the default strategy set for districts above 16 schools, running last
 so it warm-starts from everything else. `NYCMODA` still runs too, so the
 results keep showing what the old workhorse found alongside it.
 
-Its local search (`_polish`) is nearly all of the run time and is written for
-speed. A long run's result is set by how many generations fit in the time, so
-at equal time this matters: on Denver with 40 groups and 500 seconds, the
-faster version averaged $138,557.04/day over six seeds against $138,551.39 for
-the plain one, the same algorithm. In a normal run the stop rule ends it before
-the difference shows; it pays off in extended search, which turns the stop rule
-off.
+Its local search (`_polish`) is nearly all of the run time, so it is compiled
+with [Numba](https://numba.pydata.org/) (`_polish_kernel`), which fits 15–30
+times as many generations into the same time. A long run's result is set by how
+many generations fit, so at equal time this matters. On Denver with 40 groups,
+300 seconds and no stop rule, six seeds each:
+
+| `_polish` | Mean $/day | Best $/day | Generations |
+| --- | --- | --- | --- |
+| plain Python | $138,553.49 | $138,558.42 | about 900 |
+| **Numba** | **$138,562.44** | **$138,564.97** | about 24,600 |
+
+Every Numba seed beat every Python seed. In a normal run the stop rule ends the
+GA before the difference shows, so there it just finishes sooner; the gain comes
+in extended search, which turns the stop rule off.
+
+The compiled scorer (`_value`) must round the ISP exactly as Python's `round`
+does, including when E / N falls exactly on a rounding midpoint, and a test
+checks it against `_group_value` on thousands of cases. The first call compiles
+the kernels, which takes a few seconds; the result is cached in `__pycache__`.
 
 Parameters: `population` (default 40), `generations` (200; 0 = no limit),
 `patience` (stop after this many generations without improvement, 40; 0 =
