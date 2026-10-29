@@ -1,0 +1,258 @@
+state,District Code,District Name,School Code,School Name,individual_isp,proxy_isp,claiming_isp,participating_in_cep,total_enrolled,total_eligible,daily_breakfast_served,daily_lunch_served,grouping
+hi,1434-6,State of Hawaii - Department of Education,134,Abraham Lincoln Elementary,37.67%,37.67%,56.33%,Y,377,142,92,225,G14
+hi,1434-6,State of Hawaii - Department of Education,224,Admiral Arthur W. Radford High,5.91%,5.91%,5.91%,N,1878,111,594,1243,
+hi,1434-6,State of Hawaii - Department of Education,335,Ahuimanu Elementary,24.29%,24.29%,24.29%,N,280,68,89,165,
+hi,1434-6,State of Hawaii - Department of Education,200,Aiea Elementary,61.06%,61.06%,55.93%,Y,303,185,72,202,G6
+hi,1434-6,State of Hawaii - Department of Education,202,Aiea High,23.32%,23.32%,23.32%,N,849,198,261,462,
+hi,1434-6,State of Hawaii - Department of Education,201,Aiea Intermediate,29.27%,29.27%,29.27%,N,468,137,122,298,
+hi,1434-6,State of Hawaii - Department of Education,300,Aikahi Elementary,6.67%,6.67%,6.67%,N,384,26,117,220,
+hi,1434-6,State of Hawaii - Department of Education,100,Aina Haina Elementary,8.97%,8.97%,8.97%,N,674,60,164,350,
+hi,1434-6,State of Hawaii - Department of Education,101,Ala Wai Elementary,51.55%,51.55%,51.55%,Y,386,199,119,253,I-101
+hi,1434-6,State of Hawaii - Department of Education,203,Aliamanu Elementary,11.82%,11.82%,11.82%,N,377,45,92,252,
+hi,1434-6,State of Hawaii - Department of Education,204,Aliamanu Middle,8.13%,8.13%,8.13%,N,786,64,212,441,
+hi,1434-6,State of Hawaii - Department of Education,102,Aliiolani Elementary,27.63%,27.63%,27.63%,N,228,63,57,131,
+hi,1434-6,State of Hawaii - Department of Education,227,Alvah A. Scott Elementary,25.39%,25.39%,25.39%,N,453,115,122,291,
+hi,1434-6,State of Hawaii - Department of Education,250,August Ahrens Elementary,25.62%,25.62%,25.62%,N,1163,298,270,656,
+hi,1434-6,State of Hawaii - Department of Education,251,Barbers Point Elementary,55.88%,55.88%,57.13%,Y,510,285,147,281,G15
+hi,1434-6,State of Hawaii - Department of Education,323,Benjamin Parker Elementary,39.62%,39.62%,39.62%,Y,265,105,75,172,I-323
+hi,1434-6,State of Hawaii - Department of Education,324,Blanche Pope Elementary,61.63%,61.63%,55.93%,Y,245,151,76,147,G6
+hi,1434-6,State of Hawaii - Department of Education,221,Chester W. Nimitz Elementary,0.88%,0.88%,0.88%,N,370,3,100,206,
+hi,1434-6,State of Hawaii - Department of Education,448,Chiefess Kamakahelei Middle,29.08%,29.08%,29.08%,N,822,239,213,459,
+hi,1434-6,State of Hawaii - Department of Education,367,Chiefess Kapiolani Elementary,57.10%,57.10%,55.89%,Y,373,213,117,214,G5
+hi,1434-6,State of Hawaii - Department of Education,207,Daniel K. Inouye Elementary,1.97%,1.97%,1.97%,N,561,11,149,367,
+hi,1434-6,State of Hawaii - Department of Education,451,Eleele Elementary,25.85%,25.85%,25.85%,N,383,99,115,207,
+hi,1434-6,State of Hawaii - Department of Education,463,Elsie H. Wilcox Elementary,27.06%,27.06%,27.06%,N,754,204,202,483,
+hi,1434-6,State of Hawaii - Department of Education,302,Enchanted Lake Elementary,22.10%,22.10%,22.10%,N,267,59,70,155,
+hi,1434-6,State of Hawaii - Department of Education,351,Ernest Bowen de Silva Elementary,19.25%,19.25%,19.25%,N,426,82,124,293,
+hi,1434-6,State of Hawaii - Department of Education,254,Ewa Beach Elementary,24.01%,24.01%,24.01%,N,708,170,228,377,
+hi,1434-6,State of Hawaii - Department of Education,253,Ewa Elementary,31.63%,31.63%,31.63%,N,1255,397,309,860,
+hi,1434-6,State of Hawaii - Department of Education,296,Ewa Makai Middle School,18.31%,18.31%,18.31%,N,1196,219,360,781,
+hi,1434-6,State of Hawaii - Department of Education,152,George Washington Middle,39.72%,39.72%,39.72%,Y,579,230,156,332,I-152
+hi,1434-6,State of Hawaii - Department of Education,235,Gustave H. Webling Elementary,10.98%,10.98%,10.98%,N,582,64,168,372,
+hi,1434-6,State of Hawaii - Department of Education,352,Haaheo Elementary,27.97%,27.97%,27.97%,N,118,33,33,60,
+hi,1434-6,State of Hawaii - Department of Education,108,Hahaione Elementary,10.68%,10.68%,10.68%,N,512,55,146,338,
+hi,1434-6,State of Hawaii - Department of Education,401,Haiku Elementary,28.90%,28.90%,28.90%,N,346,100,106,184,
+hi,1434-6,State of Hawaii - Department of Education,206,Haleiwa Elementary,31.78%,31.78%,31.78%,N,214,68,62,113,
+hi,1434-6,State of Hawaii - Department of Education,402,Hana High & Elementary,43.39%,43.39%,55.93%,Y,401,174,108,235,G6
+hi,1434-6,State of Hawaii - Department of Education,452,Hanalei Elementary,23.71%,23.71%,23.71%,N,194,46,48,132,
+hi,1434-6,State of Hawaii - Department of Education,303,Hauula Elementary,47.12%,47.12%,47.12%,Y,399,188,104,239,I-303
+hi,1434-6,State of Hawaii - Department of Education,470,Hawaii School for the Deaf and the Blind,42.55%,42.55%,55.93%,Y,47,20,12,26,G6
+hi,1434-6,State of Hawaii - Department of Education,304,Heeia Elementary,36.27%,36.27%,36.27%,N,375,136,100,230,
+hi,1434-6,State of Hawaii - Department of Education,208,Helemano Elementary,23.62%,23.62%,23.62%,N,533,126,133,300,
+hi,1434-6,State of Hawaii - Department of Education,154,Henry J. Kaiser High,6.82%,6.82%,6.82%,N,916,62,249,542,
+hi,1434-6,State of Hawaii - Department of Education,400,Henry Perrine Baldwin High,22.49%,22.49%,22.49%,N,1263,284,333,698,
+hi,1434-6,State of Hawaii - Department of Education,255,Highlands Intermediate,20.62%,20.62%,20.62%,N,834,172,261,513,
+hi,1434-6,State of Hawaii - Department of Education,355,Hilo High,35.73%,35.73%,35.73%,Y,1167,417,350,747,I-355
+hi,1434-6,State of Hawaii - Department of Education,356,Hilo Intermediate,41.20%,41.20%,43.22%,Y,551,227,136,305,G11
+hi,1434-6,State of Hawaii - Department of Education,357,Hilo Union Elementary,61.96%,61.96%,55.89%,Y,460,285,111,273,G5
+hi,1434-6,State of Hawaii - Department of Education,109,Hokulani Elementary,8.20%,8.20%,8.20%,N,577,47,187,317,
+hi,1434-6,State of Hawaii - Department of Education,280,Holomua Elementary,17.17%,17.17%,17.17%,N,1118,192,265,707,
+hi,1434-6,State of Hawaii - Department of Education,358,Holualoa Elementary,33.26%,33.26%,33.26%,N,448,149,104,258,
+hi,1434-6,State of Hawaii - Department of Education,359,Honaunau Elementary,78.03%,78.03%,57.13%,Y,173,135,53,119,G15
+hi,1434-6,State of Hawaii - Department of Education,361,Honokaa Elementary,33.42%,33.42%,33.42%,Y,407,136,129,271,I-361
+hi,1434-6,State of Hawaii - Department of Education,360,Honokaa High & Intermediate,34.69%,34.69%,34.69%,Y,686,238,159,422,I-360
+hi,1434-6,State of Hawaii - Department of Education,297,Honouliuli Middle School,25.67%,25.67%,25.67%,N,787,202,199,526,
+hi,1434-6,State of Hawaii - Department of Education,276,Honowai Elementary,36.84%,36.84%,50.77%,Y,608,224,160,313,G2
+hi,1434-6,State of Hawaii - Department of Education,293,Hookele Elementary,19.46%,19.46%,19.46%,N,709,138,220,417,
+hi,1434-6,State of Hawaii - Department of Education,363,Hookena Elementary,55.75%,55.75%,56.33%,Y,113,63,37,71,G14
+hi,1434-6,State of Hawaii - Department of Education,209,Horace Meek Hickam Elementary,0.75%,0.75%,0.75%,N,373,3,98,240,
+hi,1434-6,State of Hawaii - Department of Education,404,Iao Intermediate,30.11%,30.11%,30.11%,N,890,268,290,498,
+hi,1434-6,State of Hawaii - Department of Education,210,Iliahi Elementary,36.05%,36.05%,36.05%,N,344,124,82,204,
+hi,1434-6,State of Hawaii - Department of Education,279,Ilima Intermediate,29.95%,29.95%,29.95%,N,728,218,203,441,
+hi,1434-6,State of Hawaii - Department of Education,256,Iroquois Point Elementary,55.71%,55.71%,55.71%,N,578,322,143,303,
+hi,1434-6,State of Hawaii - Department of Education,301,James B. Castle High,26.17%,26.17%,26.17%,N,986,258,230,504,
+hi,1434-6,State of Hawaii - Department of Education,252,James Campbell High,19.27%,19.27%,19.27%,N,2917,562,798,1659,
+hi,1434-6,State of Hawaii - Department of Education,153,John H. Wilson Elementary,6.65%,6.65%,6.65%,N,597,40,187,358,
+hi,1434-6,State of Hawaii - Department of Education,107,Joseph J. Fern Elementary,55.01%,55.01%,61.06%,Y,429,236,130,270,G13
+hi,1434-6,State of Hawaii - Department of Education,305,Kaaawa Elementary,25.81%,25.81%,56.33%,Y,124,32,29,82,G14
+hi,1434-6,State of Hawaii - Department of Education,211,Kaala Elementary,55.41%,55.41%,56.47%,Y,388,215,106,244,G10
+hi,1434-6,State of Hawaii - Department of Education,330,Kaelepulu Elementary,7.53%,7.53%,7.53%,N,666,50,183,379,
+hi,1434-6,State of Hawaii - Department of Education,113,Kaewai Elementary,63.94%,63.94%,56.33%,Y,269,172,85,143,G14
+hi,1434-6,State of Hawaii - Department of Education,371,Kahakai Elementary,41.12%,41.12%,41.12%,Y,552,227,157,376,I-371
+hi,1434-6,State of Hawaii - Department of Education,114,Kahala Elementary,14.34%,14.34%,14.34%,N,660,95,191,431,
+hi,1434-6,State of Hawaii - Department of Education,306,Kahaluu Elementary,54.66%,54.66%,54.66%,Y,247,135,76,148,I-306
+hi,1434-6,State of Hawaii - Department of Education,331,Kahuku Elementary,38.60%,38.60%,38.60%,N,329,127,93,220,
+hi,1434-6,State of Hawaii - Department of Education,307,Kahuku High & Intermediate,26.63%,26.63%,26.63%,N,1427,380,328,773,
+hi,1434-6,State of Hawaii - Department of Education,405,Kahului Elementary,30.53%,30.53%,30.53%,N,796,243,230,431,
+hi,1434-6,State of Hawaii - Department of Education,308,Kailua Elementary,38.11%,38.11%,38.11%,N,286,109,74,175,
+hi,1434-6,State of Hawaii - Department of Education,309,Kailua High,26.14%,26.14%,26.14%,N,769,201,200,447,
+hi,1434-6,State of Hawaii - Department of Education,310,Kailua Intermediate,8.61%,8.61%,8.61%,N,636,55,185,388,
+hi,1434-6,State of Hawaii - Department of Education,281,Kaimiloa Elementary,29.45%,29.45%,29.45%,N,686,202,190,447,
+hi,1434-6,State of Hawaii - Department of Education,115,Kaimuki High,46.49%,46.49%,47.20%,Y,527,245,157,319,G12
+hi,1434-6,State of Hawaii - Department of Education,116,Kaimuki Middle,11.87%,11.87%,11.87%,N,870,103,217,587,
+hi,1434-6,State of Hawaii - Department of Education,311,Kainalu Elementary,10.72%,10.72%,10.72%,N,484,52,127,275,
+hi,1434-6,State of Hawaii - Department of Education,453,Kalaheo Elementary,24.80%,24.80%,24.80%,N,367,91,95,212,
+hi,1434-6,State of Hawaii - Department of Education,312,Kalaheo High,7.57%,7.57%,7.57%,N,1327,100,428,858,
+hi,1434-6,State of Hawaii - Department of Education,119,Kalani High,8.51%,8.51%,8.51%,N,1109,94,286,726,
+hi,1434-6,State of Hawaii - Department of Education,365,Kalanianaole Elementary & Intermediate,65.56%,65.56%,55.89%,Y,180,118,55,107,G5
+hi,1434-6,State of Hawaii - Department of Education,287,Kaleiopuu Elementary,24.11%,24.11%,24.11%,N,730,176,232,394,
+hi,1434-6,State of Hawaii - Department of Education,120,Kalihi Elementary,61.79%,61.79%,60.04%,Y,212,131,55,125,G9
+hi,1434-6,State of Hawaii - Department of Education,121,Kalihi-Kai Elementary,32.60%,32.60%,32.60%,N,549,179,141,361,
+hi,1434-6,State of Hawaii - Department of Education,122,Kalihi-Uka Elementary,31.02%,31.02%,31.02%,N,274,85,74,150,
+hi,1434-6,State of Hawaii - Department of Education,123,Kalihi-Waena Elementary,47.84%,47.84%,57.13%,Y,439,210,106,241,G15
+hi,1434-6,State of Hawaii - Department of Education,431,Kamalii Elementary,16.96%,16.96%,16.96%,N,336,57,82,211,
+hi,1434-6,State of Hawaii - Department of Education,155,Kamiloiki Elementary,12.60%,12.60%,12.60%,N,626,79,176,350,
+hi,1434-6,State of Hawaii - Department of Education,313,Kaneohe Elementary,21.67%,21.67%,21.67%,N,540,117,172,290,
+hi,1434-6,State of Hawaii - Department of Education,283,Kanoelani Elementary,18.63%,18.63%,18.63%,N,730,136,222,409,
+hi,1434-6,State of Hawaii - Department of Education,454,Kapaa Elementary,37.35%,37.35%,37.35%,Y,854,319,267,508,I-454
+hi,1434-6,State of Hawaii - Department of Education,455,Kapaa High,21.20%,21.20%,21.20%,N,986,209,235,548,
+hi,1434-6,State of Hawaii - Department of Education,447,Kapaa Middle,29.14%,29.14%,29.14%,N,501,146,149,311,
+hi,1434-6,State of Hawaii - Department of Education,124,Kapalama Elementary,22.00%,22.00%,22.00%,N,500,110,121,301,
+hi,1434-6,State of Hawaii - Department of Education,282,Kapolei Elementary,29.56%,29.56%,29.56%,N,663,196,217,387,
+hi,1434-6,State of Hawaii - Department of Education,292,Kapolei High,24.65%,24.65%,24.65%,N,1781,439,483,1079,
+hi,1434-6,State of Hawaii - Department of Education,291,Kapolei Middle,27.14%,27.14%,27.14%,N,737,200,232,445,
+hi,1434-6,State of Hawaii - Department of Education,315,Kapunahala Elementary,21.41%,21.41%,21.41%,N,453,97,115,257,
+hi,1434-6,State of Hawaii - Department of Education,368,Kau High & Pahala Elementary,59.42%,59.42%,57.13%,Y,483,287,135,290,G15
+hi,1434-6,State of Hawaii - Department of Education,456,Kauai High,25.75%,25.75%,25.75%,N,1002,258,238,644,
+hi,1434-6,State of Hawaii - Department of Education,125,Kauluwela Elementary,66.42%,66.42%,54.49%,Y,408,271,134,208,G7
+hi,1434-6,State of Hawaii - Department of Education,369,Kaumana Elementary,33.48%,33.48%,33.48%,N,233,78,64,149,
+hi,1434-6,State of Hawaii - Department of Education,407,Kaunakakai Elementary,60.61%,60.61%,61.06%,Y,297,180,87,203,G13
+hi,1434-6,State of Hawaii - Department of Education,378,Ke Kula O Ehunuikaimalino,43.98%,43.98%,43.98%,Y,266,117,81,164,I-378
+hi,1434-6,State of Hawaii - Department of Education,353,Keaau Elementary,50.68%,50.68%,54.49%,Y,886,449,277,475,G7
+hi,1434-6,State of Hawaii - Department of Education,354,Keaau High,49.33%,49.33%,47.12%,Y,1050,518,340,720,G3
+hi,1434-6,State of Hawaii - Department of Education,370,Keaau Middle,54.65%,54.65%,53.78%,Y,699,382,171,368,G1
+hi,1434-6,State of Hawaii - Department of Education,388,Kealakehe Elementary,51.39%,51.39%,53.05%,Y,934,480,251,531,G4
+hi,1434-6,State of Hawaii - Department of Education,392,Kealakehe High,35.50%,35.50%,35.50%,N,1417,503,380,955,
+hi,1434-6,State of Hawaii - Department of Education,390,Kealakehe Intermediate,42.21%,42.21%,42.21%,Y,680,287,224,410,I-390
+hi,1434-6,State of Hawaii - Department of Education,372,Keaukaha Elementary,56.62%,56.62%,56.47%,Y,355,201,102,219,G10
+hi,1434-6,State of Hawaii - Department of Education,458,Kekaha Elementary,35.13%,35.13%,55.89%,Y,353,124,105,181,G5
+hi,1434-6,State of Hawaii - Department of Education,317,Keolu Elementary,26.47%,26.47%,26.47%,N,136,36,44,88,
+hi,1434-6,State of Hawaii - Department of Education,391,Keonepoko Elementary,67.17%,67.17%,56.33%,Y,591,397,143,311,G14
+hi,1434-6,State of Hawaii - Department of Education,294,Keoneula Elementary,12.75%,12.75%,12.75%,N,603,77,172,412,
+hi,1434-6,State of Hawaii - Department of Education,409,Kihei Elementary,38.49%,38.49%,38.49%,N,730,281,173,395,
+hi,1434-6,State of Hawaii - Department of Education,459,Kilauea Elementary,23.61%,23.61%,23.61%,N,305,72,74,163,
+hi,1434-6,State of Hawaii - Department of Education,410,Kilohana Elementary,68.82%,68.82%,50.77%,Y,93,64,22,48,G2
+hi,1434-6,State of Hawaii - Department of Education,118,King David Kalakaua Middle,33.15%,33.15%,33.15%,Y,926,307,246,608,I-118
+hi,1434-6,State of Hawaii - Department of Education,406,King Kamehameha III Elementary,38.99%,38.99%,38.99%,N,377,147,122,216,
+hi,1434-6,State of Hawaii - Department of Education,457,King Kaumualii Elementary,33.52%,33.52%,33.52%,N,528,177,145,353,
+hi,1434-6,State of Hawaii - Department of Education,435,King Kekaulike High,21.72%,21.72%,21.72%,N,1229,267,361,743,
+hi,1434-6,State of Hawaii - Department of Education,130,King Liholiho Elementary,13.83%,13.83%,13.83%,N,349,48,99,229,
+hi,1434-6,State of Hawaii - Department of Education,135,King William Lunalilo Elementary,50.60%,50.60%,50.60%,Y,249,126,68,153,I-135
+hi,1434-6,State of Hawaii - Department of Education,212,Kipapa Elementary,29.07%,29.07%,29.07%,N,485,141,147,301,
+hi,1434-6,State of Hawaii - Department of Education,395,Kohala Elementary,37.59%,37.59%,37.59%,Y,399,150,120,221,I-395
+hi,1434-6,State of Hawaii - Department of Education,373,Kohala High,31.23%,31.23%,31.23%,N,253,79,81,134,
+hi,1434-6,State of Hawaii - Department of Education,366,Kohala Middle,30.99%,30.99%,30.99%,Y,171,53,40,107,I-366
+hi,1434-6,State of Hawaii - Department of Education,127,Koko Head Elementary,14.60%,14.60%,14.60%,N,489,71,157,268,
+hi,1434-6,State of Hawaii - Department of Education,460,Koloa Elementary,38.33%,38.33%,38.33%,Y,360,138,118,201,I-460
+hi,1434-6,State of Hawaii - Department of Education,375,Konawaena Elementary,44.27%,44.27%,44.27%,Y,497,220,144,341,I-375
+hi,1434-6,State of Hawaii - Department of Education,374,Konawaena High,39.29%,39.29%,39.29%,N,924,363,225,626,
+hi,1434-6,State of Hawaii - Department of Education,376,Konawaena Middle,43.50%,43.50%,43.50%,Y,623,271,144,327,I-376
+hi,1434-6,State of Hawaii - Department of Education,412,Kula Elementary,28.65%,28.65%,28.65%,N,356,102,115,243,
+hi,1434-6,State of Hawaii - Department of Education,103,Kula Kaiapuni O Anuenue,34.13%,34.13%,56.33%,Y,419,143,136,215,G14
+hi,1434-6,State of Hawaii - Department of Education,437,Kulanihakoi High,20.83%,20.83%,20.83%,N,360,75,83,189,
+hi,1434-6,State of Hawaii - Department of Education,413,Lahaina Intermediate,48.64%,48.64%,48.64%,N,479,233,111,305,
+hi,1434-6,State of Hawaii - Department of Education,414,Lahainaluna High,41.01%,41.01%,41.01%,N,790,324,232,506,
+hi,1434-6,State of Hawaii - Department of Education,319,Laie Elementary,28.38%,28.38%,28.38%,N,659,187,163,409,
+hi,1434-6,State of Hawaii - Department of Education,415,Lanai High & Elementary,24.52%,24.52%,24.52%,N,624,153,147,399,
+hi,1434-6,State of Hawaii - Department of Education,129,Lanakila Elementary,37.30%,37.30%,37.30%,N,311,116,100,204,
+hi,1434-6,State of Hawaii - Department of Education,268,Lehua Elementary,34.46%,34.46%,56.47%,Y,267,92,70,174,G10
+hi,1434-6,State of Hawaii - Department of Education,271,Leihoku Elementary,53.02%,53.02%,53.78%,Y,796,422,256,415,G1
+hi,1434-6,State of Hawaii - Department of Education,214,Leilehua High,20.79%,20.79%,20.79%,N,1515,315,426,788,
+hi,1434-6,State of Hawaii - Department of Education,416,Lihikai Elementary,31.87%,31.87%,31.87%,N,640,204,156,368,
+hi,1434-6,State of Hawaii - Department of Education,133,Linapuni Elementary,78.12%,78.12%,61.06%,Y,160,125,49,107,G13
+hi,1434-6,State of Hawaii - Department of Education,430,Lokelani Intermediate,25.90%,25.90%,25.90%,N,471,122,139,268,
+hi,1434-6,State of Hawaii - Department of Education,136,Maemae Elementary,10.89%,10.89%,10.89%,N,396,43,113,264,
+hi,1434-6,State of Hawaii - Department of Education,257,Maili Elementary,52.08%,52.08%,56.33%,Y,624,325,170,352,G14
+hi,1434-6,State of Hawaii - Department of Education,236,Major Sheldon Wheeler Elementary,3.14%,3.14%,3.14%,N,572,18,148,355,
+hi,1434-6,State of Hawaii - Department of Education,237,Major Sheldon Wheeler Middle,3.29%,3.29%,3.29%,N,982,32,306,641,
+hi,1434-6,State of Hawaii - Department of Education,258,Makaha Elementary,57.55%,57.55%,56.47%,Y,417,240,128,250,G10
+hi,1434-6,State of Hawaii - Department of Education,259,Makakilo Elementary,30.21%,30.21%,30.21%,N,437,132,124,283,
+hi,1434-6,State of Hawaii - Department of Education,215,Makalapa Elementary,11.30%,11.30%,11.30%,N,475,54,136,256,
+hi,1434-6,State of Hawaii - Department of Education,417,Makawao Elementary,31.17%,31.17%,31.17%,N,478,149,143,251,
+hi,1434-6,State of Hawaii - Department of Education,260,Manana Elementary,24.07%,24.07%,24.07%,N,270,65,65,151,
+hi,1434-6,State of Hawaii - Department of Education,137,Manoa Elementary,9.79%,9.79%,9.79%,N,473,46,153,261,
+hi,1434-6,State of Hawaii - Department of Education,418,Maui High,16.83%,16.83%,16.83%,N,1670,281,485,1105,
+hi,1434-6,State of Hawaii - Department of Education,428,Maui Waena Intermediate,22.87%,22.87%,22.87%,N,1010,231,257,644,
+hi,1434-6,State of Hawaii - Department of Education,286,Mauka Lani Elementary,25.60%,25.60%,25.60%,N,543,139,140,328,
+hi,1434-6,State of Hawaii - Department of Education,419,Maunaloa Elementary,67.80%,67.80%,56.33%,Y,59,40,14,33,G14
+hi,1434-6,State of Hawaii - Department of Education,321,Maunawili Elementary,11.63%,11.63%,11.63%,N,339,39,107,215,
+hi,1434-6,State of Hawaii - Department of Education,216,Mililani High,10.48%,10.48%,10.48%,N,1536,161,407,906,
+hi,1434-6,State of Hawaii - Department of Education,240,Mililani Ike Elementary,7.33%,7.33%,7.33%,N,386,28,117,223,
+hi,1434-6,State of Hawaii - Department of Education,241,Mililani Mauka Elementary,11.53%,11.53%,11.53%,N,444,51,114,236,
+hi,1434-6,State of Hawaii - Department of Education,238,Mililani Middle,12.55%,12.55%,12.55%,N,828,104,227,534,
+hi,1434-6,State of Hawaii - Department of Education,242,Mililani Uka Elementary,13.62%,13.62%,13.62%,N,691,94,186,453,
+hi,1434-6,State of Hawaii - Department of Education,234,Mililani Waena Elementary,17.99%,17.99%,17.99%,N,667,120,185,370,
+hi,1434-6,State of Hawaii - Department of Education,217,Moanalua Elementary,9.21%,9.21%,9.21%,N,642,59,184,366,
+hi,1434-6,State of Hawaii - Department of Education,218,Moanalua High,10.23%,10.23%,10.23%,N,1877,192,467,1088,
+hi,1434-6,State of Hawaii - Department of Education,219,Moanalua Middle,8.44%,8.44%,8.44%,N,990,84,241,600,
+hi,1434-6,State of Hawaii - Department of Education,322,Mokapu Elementary,1.97%,1.97%,1.97%,N,644,13,170,394,
+hi,1434-6,State of Hawaii - Department of Education,220,Mokulele Elementary,0.98%,0.98%,0.98%,N,560,5,175,320,
+hi,1434-6,State of Hawaii - Department of Education,421,Molokai High,51.51%,51.51%,43.22%,Y,332,171,99,221,G11
+hi,1434-6,State of Hawaii - Department of Education,434,Molokai Middle,61.08%,61.08%,53.05%,Y,167,102,53,98,G4
+hi,1434-6,State of Hawaii - Department of Education,285,Momilani Elementary,7.84%,7.84%,7.84%,N,563,44,135,334,
+hi,1434-6,State of Hawaii - Department of Education,379,Mountain View Elementary,66.73%,66.73%,56.33%,Y,523,349,148,329,G14
+hi,1434-6,State of Hawaii - Department of Education,380,Naalehu Elementary,74.14%,74.14%,56.33%,Y,464,344,138,242,G14
+hi,1434-6,State of Hawaii - Department of Education,261,Nanaikapono Elementary,61.28%,61.28%,54.49%,Y,736,451,191,477,G7
+hi,1434-6,State of Hawaii - Department of Education,262,Nanakuli Elementary,52.39%,52.39%,60.04%,Y,418,219,123,265,G9
+hi,1434-6,State of Hawaii - Department of Education,263,Nanakuli High & Intermediate,47.05%,47.05%,47.12%,Y,914,430,270,487,G3
+hi,1434-6,State of Hawaii - Department of Education,139,Niu Valley Middle,6.62%,6.62%,6.62%,N,701,46,208,482,
+hi,1434-6,State of Hawaii - Department of Education,140,Noelani Elementary,12.27%,12.27%,12.27%,N,617,76,184,364,
+hi,1434-6,State of Hawaii - Department of Education,141,Nuuanu Elementary,7.23%,7.23%,7.23%,N,522,38,131,326,
+hi,1434-6,State of Hawaii - Department of Education,475,Olomana,51.61%,51.61%,47.12%,Y,93,48,26,63,G3
+hi,1434-6,State of Hawaii - Department of Education,382,Paauilo Elementary & Intermediate,39.79%,39.79%,39.79%,Y,191,76,63,117,I-382
+hi,1434-6,State of Hawaii - Department of Education,381,Pahoa Elementary,70.66%,70.66%,56.47%,Y,426,301,140,292,G10
+hi,1434-6,State of Hawaii - Department of Education,383,Pahoa High & Intermediate,62.15%,62.15%,50.77%,Y,724,450,171,460,G2
+hi,1434-6,State of Hawaii - Department of Education,422,Paia Elementary,35.28%,35.28%,35.28%,N,411,145,120,252,
+hi,1434-6,State of Hawaii - Department of Education,264,Palisades Elementary,22.54%,22.54%,22.54%,N,355,80,94,181,
+hi,1434-6,State of Hawaii - Department of Education,142,Palolo Elementary,76.77%,76.77%,55.93%,Y,254,195,59,152,G6
+hi,1434-6,State of Hawaii - Department of Education,143,Pauoa Elementary,31.01%,31.01%,31.01%,N,358,111,111,194,
+hi,1434-6,State of Hawaii - Department of Education,265,Pearl City Elementary,21.57%,21.57%,21.57%,N,408,88,119,281,
+hi,1434-6,State of Hawaii - Department of Education,266,Pearl City High,16.32%,16.32%,16.32%,N,1471,240,383,797,
+hi,1434-6,State of Hawaii - Department of Education,267,Pearl City Highlands Elementary,18.71%,18.71%,18.71%,N,529,99,147,304,
+hi,1434-6,State of Hawaii - Department of Education,222,Pearl Harbor Elementary,15.20%,15.20%,15.20%,N,408,62,118,225,
+hi,1434-6,State of Hawaii - Department of Education,223,Pearl Harbor Kai Elementary,3.07%,3.07%,3.07%,N,316,10,87,199,
+hi,1434-6,State of Hawaii - Department of Education,243,Pearl Ridge Elementary,14.04%,14.04%,14.04%,N,457,64,145,256,
+hi,1434-6,State of Hawaii - Department of Education,269,Pohakea Elementary,38.42%,38.42%,38.42%,N,518,199,137,350,
+hi,1434-6,State of Hawaii - Department of Education,433,Pomaikai Elementary School,12.52%,12.52%,12.52%,N,413,52,124,219,
+hi,1434-6,State of Hawaii - Department of Education,126,Prince David Kawananakoa Middle,27.11%,27.11%,27.11%,N,605,164,199,319,
+hi,1434-6,State of Hawaii - Department of Education,128,Prince Jonah Kuhio Elementary,43.56%,43.56%,50.77%,Y,202,88,52,129,G2
+hi,1434-6,State of Hawaii - Department of Education,131,Princess Miriam K. Likelike Elementary,46.15%,46.15%,55.93%,Y,247,114,59,138,G6
+hi,1434-6,State of Hawaii - Department of Education,429,Princess Nahienaena Elementary,43.31%,43.31%,43.31%,N,478,207,132,250,
+hi,1434-6,State of Hawaii - Department of Education,104,Princess Ruth Ke'elikolani Middle,61.35%,61.35%,56.47%,Y,370,227,89,216,G10
+hi,1434-6,State of Hawaii - Department of Education,117,Princess Victoria Kaiulani Elementary,57.92%,57.92%,55.93%,Y,240,139,64,160,G6
+hi,1434-6,State of Hawaii - Department of Education,436,Pu'u Kukui Elementary,24.55%,24.55%,24.55%,N,770,189,178,522,
+hi,1434-6,State of Hawaii - Department of Education,426,Pukalani Elementary,24.90%,24.90%,24.90%,N,486,121,153,283,
+hi,1434-6,State of Hawaii - Department of Education,314,Puohala Elementary,37.23%,37.23%,43.22%,Y,274,102,89,183,G11
+hi,1434-6,State of Hawaii - Department of Education,145,Puuhale Elementary,64.47%,64.47%,55.89%,Y,273,176,75,162,G5
+hi,1434-6,State of Hawaii - Department of Education,112,Queen Kaahumanu Elementary,48.64%,48.64%,48.64%,Y,477,232,117,278,I-112
+hi,1434-6,State of Hawaii - Department of Education,225,Red Hill Elementary,6.65%,6.65%,6.65%,N,429,29,114,272,
+hi,1434-6,State of Hawaii - Department of Education,148,Robert Louis Stevenson Middle,23.99%,23.99%,23.99%,N,571,137,132,305,
+hi,1434-6,State of Hawaii - Department of Education,147,Royal Elementary,45.64%,45.64%,45.64%,N,298,136,70,177,
+hi,1434-6,State of Hawaii - Department of Education,239,Salt Lake Elementary,24.20%,24.20%,24.20%,N,653,158,198,416,
+hi,1434-6,State of Hawaii - Department of Education,420,Samuel Enoka Kalama Intermediate,27.71%,27.71%,27.71%,N,931,258,221,495,
+hi,1434-6,State of Hawaii - Department of Education,226,Samuel K. Solomon Elementary,1.58%,1.58%,1.58%,N,354,6,101,200,
+hi,1434-6,State of Hawaii - Department of Education,318,Samuel Wilder King Intermediate,30.99%,30.99%,30.99%,N,526,163,126,304,
+hi,1434-6,State of Hawaii - Department of Education,105,Sanford B. Dole Middle,54.83%,54.83%,54.49%,Y,549,301,172,358,G7
+hi,1434-6,State of Hawaii - Department of Education,325,Sunset Beach Elementary,14.75%,14.75%,14.75%,N,646,95,153,432,
+hi,1434-6,State of Hawaii - Department of Education,146,Theodore Roosevelt High,18.26%,18.26%,18.26%,N,1320,241,393,748,
+hi,1434-6,State of Hawaii - Department of Education,111,Thomas Jefferson Elementary,33.43%,33.43%,33.43%,N,353,118,87,203,
+hi,1434-6,State of Hawaii - Department of Education,229,Wahiawa Elementary,35.57%,35.57%,35.57%,Y,461,164,149,302,I-229
+hi,1434-6,State of Hawaii - Department of Education,230,Wahiawa Middle,35.84%,35.84%,35.84%,Y,692,248,210,436,I-230
+hi,1434-6,State of Hawaii - Department of Education,326,Waiahole Elementary,50.43%,50.43%,47.20%,Y,117,59,31,63,G12
+hi,1434-6,State of Hawaii - Department of Education,384,Waiakea Elementary,43.41%,43.41%,47.12%,Y,721,313,209,487,G3
+hi,1434-6,State of Hawaii - Department of Education,389,Waiakea High,29.67%,29.67%,29.67%,N,1156,343,329,699,
+hi,1434-6,State of Hawaii - Department of Education,385,Waiakea Intermediate,36.82%,36.82%,36.82%,N,869,320,259,526,
+hi,1434-6,State of Hawaii - Department of Education,386,Waiakeawaena Elementary,34.92%,34.92%,41.69%,Y,673,235,166,362,G8
+hi,1434-6,State of Hawaii - Department of Education,231,Waialua Elementary,24.40%,24.40%,24.40%,N,459,112,106,243,
+hi,1434-6,State of Hawaii - Department of Education,232,Waialua High & Intermediate,19.14%,19.14%,19.14%,N,559,107,168,341,
+hi,1434-6,State of Hawaii - Department of Education,270,Waianae Elementary,66.51%,66.51%,60.04%,Y,436,290,142,237,G9
+hi,1434-6,State of Hawaii - Department of Education,272,Waianae High,45.66%,45.66%,41.69%,Y,1509,689,440,964,G8
+hi,1434-6,State of Hawaii - Department of Education,273,Waianae Intermediate,53.32%,53.32%,53.05%,Y,752,401,183,405,G4
+hi,1434-6,State of Hawaii - Department of Education,288,Waiau Elementary,26.58%,26.58%,26.58%,N,489,130,161,324,
+hi,1434-6,State of Hawaii - Department of Education,424,Waihee Elementary,34.84%,34.84%,34.84%,Y,574,200,154,338,I-424
+hi,1434-6,State of Hawaii - Department of Education,290,Waikele Elementary,24.72%,24.72%,24.72%,N,534,132,136,289,
+hi,1434-6,State of Hawaii - Department of Education,150,Waikiki Elementary,10.40%,10.40%,10.40%,N,597,62,140,403,
+hi,1434-6,State of Hawaii - Department of Education,393,Waikoloa School,39.76%,39.76%,41.69%,Y,742,295,218,404,G8
+hi,1434-6,State of Hawaii - Department of Education,425,Wailuku Elementary,40.25%,40.25%,40.25%,Y,554,223,163,363,I-425
+hi,1434-6,State of Hawaii - Department of Education,233,Waimalu Elementary,31.96%,31.96%,31.96%,N,316,101,100,165,
+hi,1434-6,State of Hawaii - Department of Education,327,Waimanalo Elementary & Intermediate,54.21%,54.21%,55.93%,Y,380,206,89,253,G6
+hi,1434-6,State of Hawaii - Department of Education,464,Waimea Canyon Middle,33.12%,33.12%,33.12%,N,477,158,119,313,
+hi,1434-6,State of Hawaii - Department of Education,387,Waimea Elementary,40.62%,40.62%,54.49%,Y,480,195,126,262,G7
+hi,1434-6,State of Hawaii - Department of Education,462,Waimea High,29.17%,29.17%,29.17%,N,713,208,216,445,
+hi,1434-6,State of Hawaii - Department of Education,274,Waipahu Elementary,53.95%,53.95%,56.47%,Y,823,444,205,493,G10
+hi,1434-6,State of Hawaii - Department of Education,277,Waipahu High,22.53%,22.53%,22.53%,N,2508,565,628,1575,
+hi,1434-6,State of Hawaii - Department of Education,278,Waipahu Intermediate,27.50%,27.50%,27.50%,N,1109,305,351,614,
+hi,1434-6,State of Hawaii - Department of Education,106,Wallace Rider Farrington High,33.71%,33.71%,33.71%,N,2053,692,650,1255,
+hi,1434-6,State of Hawaii - Department of Education,138,William McKinley High,32.49%,32.49%,32.49%,N,1228,399,305,822,
+hi,1434-6,State of Hawaii - Department of Education,110,William P. Jarrett Middle,58.25%,58.25%,58.25%,Y,285,166,83,189,I-110
+hi,1434-6,State of Hawaii - Department of Education,228,William R. Shafter Elementary,1.67%,1.67%,1.67%,N,349,6,103,197,

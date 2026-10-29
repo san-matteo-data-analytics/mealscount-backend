@@ -178,7 +178,7 @@ class CPSATCEPStrategy(BaseCEPStrategy):
             r = s.rates
             paid = s.bfast_served * r.paid_breakfast_rate + s.lunch_served * r.paid_lunch_rate
             if sfa:
-                paid += s.lunch_served * 0.07
+                paid += s.lunch_served * r.sfa_lunch_bonus
             A.append(round(paid * 100))
             D.append(round((s.bfast_served * (r.free_breakfast_rate - r.paid_breakfast_rate)
                             + s.lunch_served * (r.free_lunch_rate - r.paid_lunch_rate)) * 100))

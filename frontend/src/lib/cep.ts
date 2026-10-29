@@ -4,6 +4,8 @@
  * Keep this in sync with `isp_to_free_rate` and `CEPRate` on the Python side.
  */
 import type { HhfkaSixty, Rates } from "./types";
+// USDA per-meal rates by school year, shared with CEPRate on the Python side.
+import MEAL_RATES from "../../../strategies/meal_rates.json";
 
 /** 7 CFR 245.9(f)(3)(i) — dropped from 40% to 25% on 2023-10-26. */
 export const DEFAULT_ISP_THRESHOLD = 0.25;
@@ -14,8 +16,13 @@ export const FREE_RATE_MULTIPLIER = 1.6;
 /** ISP at which the multiplier saturates: 1 / 1.6 = 62.5%. */
 export const FULL_FUNDING_ISP = 1 / FREE_RATE_MULTIPLIER;
 
+type SchoolYear = keyof typeof MEAL_RATES.school_years;
+
+/** The school year whose rates the optimizer uses unless told otherwise. */
+export const DEFAULT_SCHOOL_YEAR = MEAL_RATES.default_school_year as SchoolYear;
+
 /** Performance-based lunch add-on for certified School Food Authorities. */
-export const SFA_LUNCH_BONUS = 0.07;
+export const SFA_LUNCH_BONUS = MEAL_RATES.school_years[DEFAULT_SCHOOL_YEAR].sfa_lunch_bonus;
 
 export function ispToFreeRate(isp: number, ispThreshold = DEFAULT_ISP_THRESHOLD): number {
   if (isp < ispThreshold) return 0;
@@ -27,17 +34,16 @@ export function paidRate(freeRate: number): number {
 }
 
 /**
- * Which of the three USDA rate tables a jurisdiction claims under.
- * Mirrors the branches in CEPRate.__init__ (strategies/base.py) exactly --
- * note "GM" is the code the Python side checks, so Guam ("gu") falls through
- * to the contiguous-48 table on both sides.
+ * Which of the three USDA rate tables a jurisdiction claims under, from the
+ * rate_tiers in meal_rates.json -- the same lookup as rate_tier() in strategies/base.py.
  */
 export type RateTier = "ak" | "hi" | "contiguous";
 
 export function rateTier(stateCode: string): RateTier {
   const state = stateCode.toUpperCase();
-  if (state === "AK") return "ak";
-  if (["PR", "GM", "HI", "VI"].includes(state)) return "hi";
+  for (const [tier, states] of Object.entries(MEAL_RATES.rate_tiers)) {
+    if (states.includes(state)) return tier as RateTier;
+  }
   return "contiguous";
 }
 
@@ -48,45 +54,22 @@ export const RATE_TIER_LABEL: Record<RateTier, string> = {
   contiguous: "Standard lower-48 meal rates.",
 };
 
-/** SY23-24 rate table from CEPRate in strategies/base.py. */
+/** Per-meal rates from meal_rates.json, the same table CEPRate in strategies/base.py reads. */
 export function getRates(
   stateCode: string,
   hhfkaSixty: HhfkaSixty,
   severeNeed: boolean,
+  schoolYear: SchoolYear = DEFAULT_SCHOOL_YEAR,
 ): Rates {
-  let freeLunch: number, paidLunch: number;
-
-  switch (rateTier(stateCode)) {
-    case "ak":
-      [freeLunch, paidLunch] =
-        hhfkaSixty === "less" ? [6.9, 0.66] : hhfkaSixty === "more" ? [6.92, 0.68] : [7.14, 0.76];
-      return {
-        free_lunch: freeLunch,
-        paid_lunch: paidLunch,
-        free_bfast: severeNeed ? 4.39 : 3.66,
-        paid_bfast: 0.58,
-      };
-
-    case "hi":
-      [freeLunch, paidLunch] =
-        hhfkaSixty === "less" ? [5.54, 0.53] : hhfkaSixty === "more" ? [5.56, 0.55] : [5.74, 0.61];
-      return {
-        free_lunch: freeLunch,
-        paid_lunch: paidLunch,
-        free_bfast: severeNeed ? 3.53 : 2.95,
-        paid_bfast: 0.47,
-      };
-
-    default:
-      [freeLunch, paidLunch] =
-        hhfkaSixty === "less" ? [4.25, 0.4] : hhfkaSixty === "more" ? [4.27, 0.42] : [4.42, 0.48];
-      return {
-        free_lunch: freeLunch,
-        paid_lunch: paidLunch,
-        free_bfast: severeNeed ? 2.73 : 2.28,
-        paid_bfast: 0.38,
-      };
-  }
+  const table = MEAL_RATES.school_years[schoolYear][rateTier(stateCode)];
+  const lunch = table.lunch[hhfkaSixty];
+  const breakfast = severeNeed ? table.breakfast.severe_need : table.breakfast.normal;
+  return {
+    free_lunch: lunch.free,
+    paid_lunch: lunch.paid,
+    free_bfast: breakfast.free,
+    paid_bfast: breakfast.paid,
+  };
 }
 
 /** Daily dollars for one school inside a group with the given free rate. */
