@@ -1,0 +1,94 @@
+state,District Code,District Name,School Code,School Name,individual_isp,proxy_isp,claiming_isp,participating_in_cep,total_enrolled,total_eligible,daily_breakfast_served,daily_lunch_served
+ak,00501,Anchorage School District,050010,Abbott Loop Elementary,44.44%,44.44%,44.24%,Y,270,120,88,165
+ak,00501,Anchorage School District,050020,Airport Heights Elementary,56.74%,56.74%,59.13%,Y,289,164,87,196
+ak,00501,Anchorage School District,057230,Alaska Middle College School,10.40%,10.40%,10.40%,N,250,26,65,142
+ak,00501,Anchorage School District,059100,Alaska Native Cultural Charter School,57.32%,57.32%,50.43%,Y,239,137,66,146
+ak,00501,Anchorage School District,057010,Alaska State School for the Deaf & Hard of Hearing,32.25%,32.25%,32.25%,N,31,10,8,17
+ak,00501,Anchorage School District,051000,Alpenglow Elementary,8.87%,8.87%,8.87%,N,372,33,92,220
+ak,00501,Anchorage School District,059010,Aquarian Charter School,8.97%,8.97%,8.97%,N,379,34,115,200
+ak,00501,Anchorage School District,050240,Aurora Elementary,1.99%,1.99%,1.99%,N,301,6,90,196
+ak,00501,Anchorage School District,050050,Bartlett High School,38.43%,38.43%,47.87%,Y,1293,497,362,692
+ak,00501,Anchorage School District,050060,Baxter Elementary,41.05%,41.05%,50.43%,Y,246,101,63,146
+ak,00501,Anchorage School District,050800,Bayshore Elementary,13.17%,13.17%,13.17%,N,425,56,118,251
+ak,00501,Anchorage School District,050820,Bear Valley Elementary,2.55%,2.55%,2.55%,N,392,10,125,266
+ak,00501,Anchorage School District,057100,Benson Secondary/S.E.A.R.C.H.,49.34%,49.34%,46.61%,Y,306,151,97,178
+ak,00501,Anchorage School District,050070,Birchwood ABC Elementary,15.06%,15.06%,15.06%,N,219,33,55,144
+ak,00501,Anchorage School District,050970,Bowman Elementary,16.98%,16.98%,16.98%,N,530,90,156,272
+ak,00501,Anchorage School District,050080,Campbell Elementary,31.08%,31.08%,31.08%,N,415,129,120,270
+ak,00501,Anchorage School District,050100,Central Middle School of Science,48.25%,48.25%,44.24%,Y,344,166,106,177
+ak,00501,Anchorage School District,050110,Chester Valley Elementary,43.93%,43.93%,47.87%,Y,264,116,83,145
+ak,00501,Anchorage School District,050120,Chinook Elementary,43.72%,43.72%,50.43%,Y,462,202,125,293
+ak,00501,Anchorage School District,050130,Chugach Optional Elementary,9.41%,9.41%,9.41%,N,223,21,56,132
+ak,00501,Anchorage School District,050150,Chugiak Elementary,12.52%,12.52%,12.52%,N,439,55,142,289
+ak,00501,Anchorage School District,050160,Chugiak High School,12.98%,12.98%,12.98%,N,853,111,254,465
+ak,00501,Anchorage School District,050560,Clark Middle School,59.54%,59.54%,59.13%,Y,885,527,274,558
+ak,00501,Anchorage School District,050170,College Gate Elementary,32.80%,32.80%,46.61%,Y,381,125,90,258
+ak,00501,Anchorage School District,050180,Creekside Park Elementary,47.98%,47.98%,50.43%,Y,398,191,105,214
+ak,00501,Anchorage School District,050190,Denali Montessori Elementary,38.88%,38.88%,38.88%,N,396,154,97,255
+ak,00501,Anchorage School District,050200,Dimond High School,17.78%,17.78%,17.78%,N,1361,242,410,892
+ak,00501,Anchorage School District,059080,Eagle Academy Charter School,2.94%,2.94%,2.94%,N,170,5,40,104
+ak,00501,Anchorage School District,050210,Eagle River Elementary,20.91%,20.91%,20.91%,N,306,64,85,169
+ak,00501,Anchorage School District,051130,Eagle River High School,3.45%,3.45%,3.45%,N,782,27,201,408
+ak,00501,Anchorage School District,050220,East High School,43.11%,43.11%,59.13%,Y,1619,698,435,947
+ak,00501,Anchorage School District,050300,Etheldra Davis Fairview Elementary,70.25%,70.25%,59.13%,Y,353,248,98,206
+ak,00501,Anchorage School District,056010,Family Partnership Charter School,14.93%,14.93%,14.93%,N,1205,180,362,782
+ak,00501,Anchorage School District,050880,Fire Lake Elementary,16.80%,16.80%,16.80%,N,238,40,76,150
+ak,00501,Anchorage School District,059050,Frontier Charter School,15.47%,15.47%,15.47%,N,517,80,143,303
+ak,00501,Anchorage School District,050360,Girdwood School,5.34%,5.34%,5.34%,N,187,10,49,100
+ak,00501,Anchorage School District,050370,Gladys Wood Elementary,38.20%,38.20%,46.61%,Y,335,128,79,218
+ak,00501,Anchorage School District,051050,Goldenview Middle School,11.70%,11.70%,11.70%,N,675,79,217,392
+ak,00501,Anchorage School District,050380,Government Hill Elementary,27.19%,27.19%,46.61%,Y,467,127,145,254
+ak,00501,Anchorage School District,050140,Gruening Middle School,10.22%,10.22%,10.22%,N,499,51,145,335
+ak,00501,Anchorage School District,050870,Hanshew Middle School,28.92%,28.92%,28.92%,N,695,201,176,377
+ak,00501,Anchorage School District,059060,Highland Tech High Charter School,19.59%,19.59%,19.59%,N,148,29,44,95
+ak,00501,Anchorage School District,050400,Homestead Elementary,10.99%,10.99%,10.99%,N,282,31,75,192
+ak,00501,Anchorage School District,050420,Huffman Elementary,11.93%,11.93%,11.93%,N,352,42,81,186
+ak,00501,Anchorage School District,050430,Inlet View Elementary,21.35%,21.35%,21.35%,N,206,44,56,136
+ak,00501,Anchorage School District,051010,Kasuun Elementary,28.08%,28.08%,28.08%,N,292,82,81,185
+ak,00501,Anchorage School District,051020,Kincaid Elementary,18.63%,18.63%,18.63%,N,483,90,126,251
+ak,00501,Anchorage School District,057110,King Career Center,19.32%,19.32%,19.32%,N,119,23,31,73
+ak,00501,Anchorage School District,050030,Klatt Elementary,35.77%,35.77%,46.61%,Y,369,132,106,202
+ak,00501,Anchorage School District,051030,Lake Hood Elementary,34.18%,34.18%,34.18%,N,275,94,76,141
+ak,00501,Anchorage School District,050450,Lake Otis Elementary,43.68%,43.68%,46.61%,Y,335,146,103,223
+ak,00501,Anchorage School District,050940,Mears Middle School,25.25%,25.25%,25.25%,N,776,196,213,424
+ak,00501,Anchorage School District,051060,Mirror Lake Middle School,12.56%,12.56%,12.56%,N,557,70,148,368
+ak,00501,Anchorage School District,050480,Mountain View Elementary,67.21%,67.21%,59.13%,Y,302,203,86,194
+ak,00501,Anchorage School District,050490,Muldoon Elementary,62.44%,62.44%,59.13%,Y,466,291,138,283
+ak,00501,Anchorage School District,051150,Nicholas J. Begich Middle School,43.45%,43.45%,46.61%,Y,886,385,281,500
+ak,00501,Anchorage School District,050500,North Star Elementary,63.45%,63.45%,59.13%,Y,394,250,123,268
+ak,00501,Anchorage School District,050510,Northern Lights ABC K-8 School,15.26%,15.26%,15.26%,N,557,85,140,347
+ak,00501,Anchorage School District,050520,Northwood ABC,41.72%,41.72%,46.61%,Y,290,121,92,156
+ak,00501,Anchorage School District,050530,Nunaka Valley Elementary,34.72%,34.72%,50.43%,Y,216,75,57,116
+ak,00501,Anchorage School District,050540,O'Malley Elementary,8.08%,8.08%,8.08%,N,334,27,90,222
+ak,00501,Anchorage School District,050550,Ocean View Elementary,29.38%,29.38%,29.38%,N,405,119,98,250
+ak,00501,Anchorage School District,050250,Orion Elementary School,0.75%,0.75%,0.75%,N,266,2,67,140
+ak,00501,Anchorage School District,050990,Polaris K-12 School,19.60%,19.60%,19.60%,N,459,90,128,300
+ak,00501,Anchorage School District,050580,Ptarmigan Elementary,43.37%,43.37%,50.43%,Y,332,144,94,181
+ak,00501,Anchorage School District,050590,Rabbit Creek Elementary,12.59%,12.59%,12.59%,N,413,52,133,239
+ak,00501,Anchorage School District,050810,Ravenwood Elementary,5.00%,5.00%,5.00%,N,460,23,133,279
+ak,00501,Anchorage School District,059090,Rilke Schule Charter School,11.49%,11.49%,11.49%,N,435,50,107,249
+ak,00501,Anchorage School District,050600,Rogers Park Elementary,17.03%,17.03%,17.03%,N,411,70,130,236
+ak,00501,Anchorage School District,050610,Romig Middle School,30.01%,30.01%,30.01%,N,753,226,234,422
+ak,00501,Anchorage School District,050620,Russian Jack Elementary,48.60%,48.60%,50.43%,Y,286,139,89,160
+ak,00501,Anchorage School District,057130,S.A.V.E. High School,43.47%,43.47%,43.47%,N,115,50,28,66
+ak,00501,Anchorage School District,050640,Sand Lake Elementary,19.92%,19.92%,19.92%,N,522,104,143,291
+ak,00501,Anchorage School District,050650,Scenic Park Elementary,27.14%,27.14%,27.14%,N,405,110,126,235
+ak,00501,Anchorage School District,050660,Service High School,19.01%,19.01%,19.01%,N,1425,271,359,754
+ak,00501,Anchorage School District,051120,South Anchorage High School,9.45%,9.45%,9.45%,N,1257,119,346,757
+ak,00501,Anchorage School District,050890,Spring Hill Elementary,46.52%,46.52%,47.87%,Y,331,154,109,210
+ak,00501,Anchorage School District,050670,Steller Secondary School,11.25%,11.25%,11.25%,N,240,27,60,128
+ak,00501,Anchorage School District,050680,Susitna Elementary,34.82%,34.82%,34.82%,N,402,140,113,276
+ak,00501,Anchorage School District,050690,Taku Elementary,42.50%,42.50%,47.87%,Y,287,122,66,198
+ak,00501,Anchorage School District,051110,Trailside Elementary,17.00%,17.00%,17.00%,N,394,67,110,230
+ak,00501,Anchorage School District,050700,Tudor Elementary,30.25%,30.25%,30.25%,N,347,105,83,234
+ak,00501,Anchorage School District,050710,Turnagain Elementary,34.03%,34.03%,34.03%,N,332,113,83,185
+ak,00501,Anchorage School District,050340,Ursa Major Elementary,1.38%,1.38%,1.38%,N,432,6,104,290
+ak,00501,Anchorage School District,050350,Ursa Minor Elementary,1.91%,1.91%,1.91%,N,314,6,101,214
+ak,00501,Anchorage School District,050720,Wendler Middle School,34.66%,34.66%,44.24%,Y,450,156,136,302
+ak,00501,Anchorage School District,050730,West High School,30.02%,30.02%,30.02%,N,1692,508,526,1025
+ak,00501,Anchorage School District,057140,Whaley School,36.39%,36.39%,44.24%,Y,338,123,105,184
+ak,00501,Anchorage School District,051040,William Tyson Elementary,66.85%,66.85%,59.13%,Y,347,232,85,180
+ak,00501,Anchorage School District,050750,Williwaw Elementary,54.81%,54.81%,47.87%,Y,343,188,107,181
+ak,00501,Anchorage School District,050760,Willow Crest Elementary,58.19%,58.19%,47.87%,Y,354,206,91,229
+ak,00501,Anchorage School District,059070,Winterberry School,13.65%,13.65%,13.65%,N,227,31,66,137
+ak,00501,Anchorage School District,050770,Wonder Park Elementary,60.89%,60.89%,46.61%,Y,289,176,92,154

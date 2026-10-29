@@ -228,9 +228,9 @@ export const DISTRICT_INPUT_FIELDS: FieldDoc[] = [
     meaning: "Turn on if your SFA is certified for the performance-based extra 7¢ per lunch.",
   },
   {
-    label: "Paid lunch equity band",
+    label: "Lunch rate tier",
     meaning:
-      "Which paid lunch equity band your district falls in, set under the Healthy, Hunger-Free Kids Act. It shifts every per-meal rate slightly.",
+      "Which USDA lunch reimbursement tier your SFA is paid at. SFAs that served 60% or more of their lunches free or reduced-price in the second preceding school year get 2¢ more per lunch. \"Maximum rate\" applies only if your state agency pays you the maximum rate.",
   },
   {
     label: "Maximum number of groups",

@@ -83,16 +83,32 @@ class CEPTestCase(unittest.TestCase,CEPTestMixin):
         self.assertAlmostEqual(g.paid_rate,0.28)
 
     def test_rate_determination(self):
-        # State, SFA, 60%, Severe Need 
-        r = CEPRate("ak",True,"more",True)
+        # State, SFA, 60%, Severe Need, School Year
+        r = CEPRate("ak",True,"more",True,"2023-24")
         self.assertEqual(r.paid_lunch_rate,0.68)
         self.assertEqual(r.free_breakfast_rate,4.39)
-        r = CEPRate("ny",True,"less",False)
+        r = CEPRate("ny",True,"less",False,"2023-24")
         self.assertEqual(r.free_breakfast_rate,2.28)
         self.assertEqual(r.paid_lunch_rate,0.40)
-        r = CEPRate("tx",True,"max",True)
+        r = CEPRate("tx",True,"max",True,"2023-24")
         self.assertEqual(r.paid_breakfast_rate,0.38)
         self.assertEqual(r.free_lunch_rate,4.42)
+        self.assertEqual(r.sfa_lunch_bonus,0.07)
+
+    def test_rate_determination_default_year(self):
+        # SY 2026-27, 91 FR 43597 (FR Doc. 2026-14252)
+        r = CEPRate("ny",True,"more",False)
+        self.assertEqual(r.free_lunch_rate,4.78)
+        self.assertEqual(r.paid_lunch_rate,0.47)
+        self.assertEqual(r.free_breakfast_rate,2.54)
+        self.assertEqual(r.paid_breakfast_rate,0.42)
+        self.assertEqual(r.sfa_lunch_bonus,0.09)
+        r = CEPRate("ak",True,"less",True)
+        self.assertEqual(r.free_lunch_rate,7.72)
+        self.assertEqual(r.free_breakfast_rate,4.90)
+        # Guam's postal code is GU; it claims at the Hawaii and territories rates
+        for state in ("hi","gu","pr","vi"):
+            self.assertEqual(CEPRate(state,True,"more",False).free_lunch_rate,6.21)
     
     def test_group(self):
         district = self.create_default_districts()

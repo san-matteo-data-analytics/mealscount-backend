@@ -1,0 +1,87 @@
+{
+  "_about": "USDA federal reimbursement rates per meal, in dollars. Shared by CEPRate (strategies/base.py) and getRates (frontend/src/lib/cep.ts) -- edit here only. To add a school year, copy the latest block, fill it in from that July's Federal Register notice, and point default_school_year at it.",
+  "_lunch_tiers": "less = SFA served under 60% of lunches free/reduced in the second preceding school year; more = 60% or more; max = the maximum rate a State agency may pay.",
+  "_reduced": "Reduced price is the free rate less 40 cents (lunch) or 30 cents (breakfast), per the National School Lunch Act.",
+  "default_school_year": "2026-27",
+  "rate_tiers": {
+    "ak": ["AK"],
+    "hi": ["HI", "GU", "GM", "PR", "VI"]
+  },
+  "school_years": {
+    "2026-27": {
+      "source": "USDA FNS, 91 FR 43597 (July 16, 2026), FR Doc. 2026-14252",
+      "_max": "max is Section 4 maximum + Section 11; the notice's combined chart is an image, so verify against it before relying on this column.",
+      "sfa_lunch_bonus": 0.09,
+      "contiguous": {
+        "lunch": {
+          "less": { "free": 4.76, "reduced": 4.36, "paid": 0.45 },
+          "more": { "free": 4.78, "reduced": 4.38, "paid": 0.47 },
+          "max": { "free": 4.84, "reduced": 4.44, "paid": 0.53 }
+        },
+        "breakfast": {
+          "normal": { "free": 2.54, "reduced": 2.24, "paid": 0.42 },
+          "severe_need": { "free": 3.05, "reduced": 2.75, "paid": 0.42 }
+        }
+      },
+      "ak": {
+        "lunch": {
+          "less": { "free": 7.72, "reduced": 7.32, "paid": 0.74 },
+          "more": { "free": 7.74, "reduced": 7.34, "paid": 0.76 },
+          "max": { "free": 7.82, "reduced": 7.42, "paid": 0.84 }
+        },
+        "breakfast": {
+          "normal": { "free": 4.09, "reduced": 3.79, "paid": 0.64 },
+          "severe_need": { "free": 4.90, "reduced": 4.60, "paid": 0.64 }
+        }
+      },
+      "hi": {
+        "lunch": {
+          "less": { "free": 6.19, "reduced": 5.79, "paid": 0.59 },
+          "more": { "free": 6.21, "reduced": 5.81, "paid": 0.61 },
+          "max": { "free": 6.28, "reduced": 5.88, "paid": 0.68 }
+        },
+        "breakfast": {
+          "normal": { "free": 3.29, "reduced": 2.99, "paid": 0.52 },
+          "severe_need": { "free": 3.94, "reduced": 3.64, "paid": 0.52 }
+        }
+      }
+    },
+    "2023-24": {
+      "source": "The table MealsCount shipped with through October 2026 (previously hardcoded in CEPRate)",
+      "sfa_lunch_bonus": 0.07,
+      "contiguous": {
+        "lunch": {
+          "less": { "free": 4.25, "reduced": 3.85, "paid": 0.40 },
+          "more": { "free": 4.27, "reduced": 3.87, "paid": 0.42 },
+          "max": { "free": 4.42, "reduced": 4.02, "paid": 0.48 }
+        },
+        "breakfast": {
+          "normal": { "free": 2.28, "reduced": 1.98, "paid": 0.38 },
+          "severe_need": { "free": 2.73, "reduced": 2.43, "paid": 0.38 }
+        }
+      },
+      "ak": {
+        "lunch": {
+          "less": { "free": 6.90, "reduced": 6.50, "paid": 0.66 },
+          "more": { "free": 6.92, "reduced": 6.52, "paid": 0.68 },
+          "max": { "free": 7.14, "reduced": 6.74, "paid": 0.76 }
+        },
+        "breakfast": {
+          "normal": { "free": 3.66, "reduced": 3.36, "paid": 0.58 },
+          "severe_need": { "free": 4.39, "reduced": 4.09, "paid": 0.58 }
+        }
+      },
+      "hi": {
+        "lunch": {
+          "less": { "free": 5.54, "reduced": 5.14, "paid": 0.53 },
+          "more": { "free": 5.56, "reduced": 5.16, "paid": 0.55 },
+          "max": { "free": 5.74, "reduced": 5.34, "paid": 0.61 }
+        },
+        "breakfast": {
+          "normal": { "free": 2.95, "reduced": 2.65, "paid": 0.47 },
+          "severe_need": { "free": 3.53, "reduced": 3.23, "paid": 0.47 }
+        }
+      }
+    }
+  }
+}

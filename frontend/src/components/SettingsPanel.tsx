@@ -220,18 +220,20 @@ export default function SettingsPanel({
         />
 
         <FormControl size="small" fullWidth>
-          <InputLabel id="hhfka-label">Paid lunch equity</InputLabel>
+          <InputLabel id="hhfka-label">Lunch rate tier</InputLabel>
           <Select
             labelId="hhfka-label"
-            label="Paid lunch equity"
+            label="Lunch rate tier"
             value={settings.hhfka_sixty}
             onChange={(e) => set("hhfka_sixty", e.target.value as HhfkaSixty)}
           >
-            <MenuItem value="less">Lower band</MenuItem>
-            <MenuItem value="more">Middle band</MenuItem>
-            <MenuItem value="max">Upper band</MenuItem>
+            <MenuItem value="less">Under 60% free/reduced</MenuItem>
+            <MenuItem value="more">60% or more free/reduced</MenuItem>
+            <MenuItem value="max">Maximum rate</MenuItem>
           </Select>
-          <FormHelperText>Your district&apos;s band. It shifts every per-meal rate slightly.</FormHelperText>
+          <FormHelperText>
+            Share of lunches served free or reduced-price two school years ago. 60% or more adds 2¢ per lunch.
+          </FormHelperText>
         </FormControl>
 
         <Box>

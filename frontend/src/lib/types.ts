@@ -34,7 +34,7 @@ export interface DistrictSettings {
   isp_threshold: number;
   /** SFA certified for the performance-based 7 cent lunch add-on. */
   sfa_certified: boolean;
-  /** HHFKA §60 paid-lunch-equity band: "less" | "more" | "max". */
+  /** USDA lunch rate tier: under 60% free/reduced ("less"), 60% or more ("more"), or the maximum rate ("max"). */
   hhfka_sixty: HhfkaSixty;
   /** Cap on how many groups a strategy may return to stay eligible. */
   max_groups: number;

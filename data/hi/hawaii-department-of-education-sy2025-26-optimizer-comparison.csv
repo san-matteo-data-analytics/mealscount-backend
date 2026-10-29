@@ -1,0 +1,258 @@
+School Code,School Name,individual_isp,total_enrolled,participating_in_cep,actual_group,actual_group_isp,optimizer_cep_only_group,optimizer_cep_only_group_isp,optimizer_all_schools_group,optimizer_all_schools_group_isp
+134,Abraham Lincoln Elementary,37.67%,377,Y,G14,56.33%,O25,41.03%,O35,25.01%
+224,Admiral Arthur W. Radford High,5.91%,1878,N,,,,,O25,25.10%
+335,Ahuimanu Elementary,24.29%,280,N,,,,,O35,25.01%
+200,Aiea Elementary,61.06%,303,Y,G6,55.93%,O3,59.01%,O5,49.29%
+202,Aiea High,23.32%,849,N,,,,,O35,25.01%
+201,Aiea Intermediate,29.27%,468,N,,,,,O33,25.02%
+300,Aikahi Elementary,6.67%,384,N,,,,,O35,25.01%
+100,Aina Haina Elementary,8.97%,674,N,,,,,O37,25.00%
+101,Ala Wai Elementary,51.55%,386,Y,I-101,51.55%,O5,55.91%,O3,51.57%
+203,Aliamanu Elementary,11.82%,377,N,,,,,O35,25.01%
+204,Aliamanu Middle,8.13%,786,N,,,,,O36,25.01%
+102,Aliiolani Elementary,27.63%,228,N,,,,,O21,25.34%
+227,Alvah A. Scott Elementary,25.39%,453,N,,,,,O25,25.10%
+250,August Ahrens Elementary,25.62%,1163,N,,,,,O28,25.04%
+251,Barbers Point Elementary,55.88%,510,Y,G15,57.13%,O18,46.83%,O35,25.01%
+323,Benjamin Parker Elementary,39.62%,265,Y,I-323,39.62%,O16,48.64%,O12,36.62%
+324,Blanche Pope Elementary,61.63%,245,Y,G6,55.93%,O5,55.91%,O12,36.62%
+221,Chester W. Nimitz Elementary,0.88%,370,N,,,,,O29,25.03%
+448,Chiefess Kamakahelei Middle,29.08%,822,N,,,,,O22,25.30%
+367,Chiefess Kapiolani Elementary,57.10%,373,Y,G5,55.89%,O13,51.12%,O20,27.94%
+207,Daniel K. Inouye Elementary,1.97%,561,N,,,,,O38,25.00%
+451,Eleele Elementary,25.85%,383,N,,,,,O30,25.03%
+463,Elsie H. Wilcox Elementary,27.06%,754,N,,,,,O21,25.34%
+302,Enchanted Lake Elementary,22.10%,267,N,,,,,O35,25.01%
+351,Ernest Bowen de Silva Elementary,19.25%,426,N,,,,,O12,36.62%
+254,Ewa Beach Elementary,24.01%,708,N,,,,,O34,25.02%
+253,Ewa Elementary,31.63%,1255,N,,,,,O10,39.29%
+296,Ewa Makai Middle School,18.31%,1196,N,,,,,O19,28.21%
+152,George Washington Middle,39.72%,579,Y,I-152,39.72%,O24,41.33%,O25,25.10%
+235,Gustave H. Webling Elementary,10.98%,582,N,,,,,O33,25.02%
+352,Haaheo Elementary,27.97%,118,N,,,,,O25,25.10%
+108,Hahaione Elementary,10.68%,512,N,,,,,O30,25.03%
+401,Haiku Elementary,28.90%,346,N,,,,,O37,25.00%
+206,Haleiwa Elementary,31.78%,214,N,,,,,O34,25.02%
+402,Hana High & Elementary,43.39%,401,Y,G6,55.93%,O20,45.54%,O21,25.34%
+452,Hanalei Elementary,23.71%,194,N,,,,,O14,33.35%
+303,Hauula Elementary,47.12%,399,Y,I-303,47.12%,O18,46.83%,O36,25.01%
+470,Hawaii School for the Deaf and the Blind,42.55%,47,Y,G6,55.93%,O22,44.77%,O35,25.01%
+304,Heeia Elementary,36.27%,375,N,,,,,O20,27.94%
+208,Helemano Elementary,23.62%,533,N,,,,,O26,25.05%
+154,Henry J. Kaiser High,6.82%,916,N,,,,,O31,25.03%
+400,Henry Perrine Baldwin High,22.49%,1263,N,,,,,O35,25.01%
+255,Highlands Intermediate,20.62%,834,N,,,,,O22,25.30%
+355,Hilo High,35.73%,1167,Y,I-355,35.73%,O18,46.83%,O11,37.73%
+356,Hilo Intermediate,41.20%,551,Y,G11,43.22%,O27,39.52%,O26,25.05%
+357,Hilo Union Elementary,61.96%,460,Y,G5,55.89%,O12,52.19%,O22,25.30%
+109,Hokulani Elementary,8.20%,577,N,,,,,O29,25.03%
+280,Holomua Elementary,17.17%,1118,N,,,,,O39,25.00%
+358,Holualoa Elementary,33.26%,448,N,,,,,O39,25.00%
+359,Honaunau Elementary,78.03%,173,Y,G15,57.13%,O1,62.38%,O2,59.65%
+361,Honokaa Elementary,33.42%,407,Y,I-361,33.42%,O16,48.64%,O7,43.91%
+360,Honokaa High & Intermediate,34.69%,686,Y,I-360,34.69%,O23,41.65%,O30,25.03%
+297,Honouliuli Middle School,25.67%,787,N,,,,,O14,33.35%
+276,Honowai Elementary,36.84%,608,Y,G2,50.77%,O29,35.74%,O34,25.02%
+293,Hookele Elementary,19.46%,709,N,,,,,O27,25.05%
+363,Hookena Elementary,55.75%,113,Y,G14,56.33%,O6,55.75%,O7,43.91%
+209,Horace Meek Hickam Elementary,0.75%,373,N,,,,,O30,25.03%
+404,Iao Intermediate,30.11%,890,N,,,,,O31,25.03%
+210,Iliahi Elementary,36.05%,344,N,,,,,O35,25.01%
+279,Ilima Intermediate,29.95%,728,N,,,,,O21,25.34%
+256,Iroquois Point Elementary,55.71%,578,N,,,,,O25,25.10%
+301,James B. Castle High,26.17%,986,N,,,,,O39,25.00%
+252,James Campbell High,19.27%,2917,N,,,,,O29,25.03%
+153,John H. Wilson Elementary,6.65%,597,N,,,,,O22,25.30%
+107,Joseph J. Fern Elementary,55.01%,429,Y,G13,61.06%,O7,55.48%,O7,43.91%
+305,Kaaawa Elementary,25.81%,124,Y,G14,56.33%,O24,41.33%,O18,28.59%
+211,Kaala Elementary,55.41%,388,Y,G10,56.47%,O8,54.60%,O12,36.62%
+330,Kaelepulu Elementary,7.53%,666,N,,,,,O39,25.00%
+113,Kaewai Elementary,63.94%,269,Y,G14,56.33%,O18,46.83%,O32,25.03%
+371,Kahakai Elementary,41.12%,552,Y,I-371,41.12%,O10,53.38%,O5,49.29%
+114,Kahala Elementary,14.34%,660,N,,,,,O18,28.59%
+306,Kahaluu Elementary,54.66%,247,Y,I-306,54.66%,O10,53.38%,O12,36.62%
+331,Kahuku Elementary,38.60%,329,N,,,,,O6,45.32%
+307,Kahuku High & Intermediate,26.63%,1427,N,,,,,O35,25.01%
+405,Kahului Elementary,30.53%,796,N,,,,,O34,25.02%
+308,Kailua Elementary,38.11%,286,N,,,,,O19,28.21%
+309,Kailua High,26.14%,769,N,,,,,O40,25.00%
+310,Kailua Intermediate,8.61%,636,N,,,,,O22,25.30%
+281,Kaimiloa Elementary,29.45%,686,N,,,,,O14,33.35%
+115,Kaimuki High,46.49%,527,Y,G12,47.20%,O16,48.64%,O18,28.59%
+116,Kaimuki Middle,11.87%,870,N,,,,,O20,27.94%
+311,Kainalu Elementary,10.72%,484,N,,,,,O28,25.04%
+453,Kalaheo Elementary,24.80%,367,N,,,,,O39,25.00%
+312,Kalaheo High,7.57%,1327,N,,,,,O21,25.34%
+119,Kalani High,8.51%,1109,N,,,,,O37,25.00%
+365,Kalanianaole Elementary & Intermediate,65.56%,180,Y,G5,55.89%,O5,55.91%,O9,39.86%
+287,Kaleiopuu Elementary,24.11%,730,N,,,,,O28,25.04%
+120,Kalihi Elementary,61.79%,212,Y,G9,60.04%,O10,53.38%,O38,25.00%
+121,Kalihi-Kai Elementary,32.60%,549,N,,,,,O13,34.41%
+122,Kalihi-Uka Elementary,31.02%,274,N,,,,,O29,25.03%
+123,Kalihi-Waena Elementary,47.84%,439,Y,G15,57.13%,O24,41.33%,O37,25.00%
+431,Kamalii Elementary,16.96%,336,N,,,,,O39,25.00%
+155,Kamiloiki Elementary,12.60%,626,N,,,,,O35,25.01%
+313,Kaneohe Elementary,21.67%,540,N,,,,,O24,25.20%
+283,Kanoelani Elementary,18.63%,730,N,,,,,O24,25.20%
+454,Kapaa Elementary,37.35%,854,Y,I-454,37.35%,O22,44.77%,O21,25.34%
+455,Kapaa High,21.20%,986,N,,,,,O35,25.01%
+447,Kapaa Middle,29.14%,501,N,,,,,O18,28.59%
+124,Kapalama Elementary,22.00%,500,N,,,,,O24,25.20%
+282,Kapolei Elementary,29.56%,663,N,,,,,O37,25.00%
+292,Kapolei High,24.65%,1781,N,,,,,O34,25.02%
+291,Kapolei Middle,27.14%,737,N,,,,,O38,25.00%
+315,Kapunahala Elementary,21.41%,453,N,,,,,O34,25.02%
+368,Kau High & Pahala Elementary,59.42%,483,Y,G15,57.13%,O10,53.38%,O29,25.03%
+456,Kauai High,25.75%,1002,N,,,,,O22,25.30%
+125,Kauluwela Elementary,66.42%,408,Y,G7,54.49%,O14,50.06%,O23,25.22%
+369,Kaumana Elementary,33.48%,233,N,,,,,O15,33.24%
+407,Kaunakakai Elementary,60.61%,297,Y,G13,61.06%,O1,62.38%,O1,60.61%
+378,Ke Kula O Ehunuikaimalino,43.98%,266,Y,I-378,43.98%,O16,48.64%,O19,28.21%
+353,Keaau Elementary,50.68%,886,Y,G7,54.49%,O21,45.21%,O35,25.01%
+354,Keaau High,49.33%,1050,Y,G3,47.12%,O2,61.67%,O2,59.65%
+370,Keaau Middle,54.65%,699,Y,G1,53.78%,O20,45.54%,O39,25.00%
+388,Kealakehe Elementary,51.39%,934,Y,G4,53.05%,O18,46.83%,O25,25.10%
+392,Kealakehe High,35.50%,1417,N,,,,,O8,41.63%
+390,Kealakehe Intermediate,42.21%,680,Y,I-390,42.21%,O17,48.64%,O16,32.18%
+372,Keaukaha Elementary,56.62%,355,Y,G10,56.47%,O9,54.33%,O11,37.73%
+458,Kekaha Elementary,35.13%,353,Y,G5,55.89%,O30,35.13%,O40,25.00%
+317,Keolu Elementary,26.47%,136,N,,,,,O11,37.73%
+391,Keonepoko Elementary,67.17%,591,Y,G14,56.33%,O16,48.64%,O32,25.03%
+294,Keoneula Elementary,12.75%,603,N,,,,,O12,36.62%
+409,Kihei Elementary,38.49%,730,N,,,,,O33,25.02%
+459,Kilauea Elementary,23.61%,305,N,,,,,O35,25.01%
+410,Kilohana Elementary,68.82%,93,Y,G2,50.77%,O15,49.30%,O33,25.02%
+118,King David Kalakaua Middle,33.15%,926,Y,I-118,33.15%,O20,45.54%,O16,32.18%
+406,King Kamehameha III Elementary,38.99%,377,N,,,,,O22,25.30%
+457,King Kaumualii Elementary,33.52%,528,N,,,,,O9,39.86%
+435,King Kekaulike High,21.72%,1229,N,,,,,O25,25.10%
+130,King Liholiho Elementary,13.83%,349,N,,,,,O35,25.01%
+135,King William Lunalilo Elementary,50.60%,249,Y,I-135,50.60%,O12,52.19%,O32,25.03%
+212,Kipapa Elementary,29.07%,485,N,,,,,O17,29.07%
+395,Kohala Elementary,37.59%,399,Y,I-395,37.59%,O28,38.91%,O30,25.03%
+373,Kohala High,31.23%,253,N,,,,,O26,25.05%
+366,Kohala Middle,30.99%,171,Y,I-366,30.99%,O27,39.52%,O38,25.00%
+127,Koko Head Elementary,14.60%,489,N,,,,,O33,25.02%
+460,Koloa Elementary,38.33%,360,Y,I-460,38.33%,O23,41.65%,O34,25.02%
+375,Konawaena Elementary,44.27%,497,Y,I-375,44.27%,O7,55.48%,O5,49.29%
+374,Konawaena High,39.29%,924,N,,,,,O9,39.86%
+376,Konawaena Middle,43.50%,623,Y,I-376,43.50%,O28,38.91%,O35,25.01%
+412,Kula Elementary,28.65%,356,N,,,,,O6,45.32%
+103,Kula Kaiapuni O Anuenue,34.13%,419,Y,G14,56.33%,O29,35.74%,O31,25.03%
+437,Kulanihakoi High,20.83%,360,N,,,,,O35,25.01%
+413,Lahaina Intermediate,48.64%,479,N,,,,,O14,33.35%
+414,Lahainaluna High,41.01%,790,N,,,,,O11,37.73%
+319,Laie Elementary,28.38%,659,N,,,,,O25,25.10%
+415,Lanai High & Elementary,24.52%,624,N,,,,,O35,25.01%
+129,Lanakila Elementary,37.30%,311,N,,,,,O6,45.32%
+268,Lehua Elementary,34.46%,267,Y,G10,56.47%,O19,46.80%,O27,25.05%
+271,Leihoku Elementary,53.02%,796,Y,G1,53.78%,O20,45.54%,O29,25.03%
+214,Leilehua High,20.79%,1515,N,,,,,O40,25.00%
+416,Lihikai Elementary,31.87%,640,N,,,,,O27,25.05%
+133,Linapuni Elementary,78.12%,160,Y,G13,61.06%,O2,61.67%,O2,59.65%
+430,Lokelani Intermediate,25.90%,471,N,,,,,O25,25.10%
+136,Maemae Elementary,10.89%,396,N,,,,,O37,25.00%
+257,Maili Elementary,52.08%,624,Y,G14,56.33%,O19,46.80%,O33,25.02%
+236,Major Sheldon Wheeler Elementary,3.14%,572,N,,,,,O32,25.03%
+237,Major Sheldon Wheeler Middle,3.29%,982,N,,,,,O25,25.10%
+258,Makaha Elementary,57.55%,417,Y,G10,56.47%,O10,53.38%,O12,36.62%
+259,Makakilo Elementary,30.21%,437,N,,,,,O14,33.35%
+215,Makalapa Elementary,11.30%,475,N,,,,,O37,25.00%
+417,Makawao Elementary,31.17%,478,N,,,,,O24,25.20%
+260,Manana Elementary,24.07%,270,N,,,,,O39,25.00%
+137,Manoa Elementary,9.79%,473,N,,,,,O25,25.10%
+418,Maui High,16.83%,1670,N,,,,,O16,32.18%
+428,Maui Waena Intermediate,22.87%,1010,N,,,,,O40,25.00%
+286,Mauka Lani Elementary,25.60%,543,N,,,,,O39,25.00%
+419,Maunaloa Elementary,67.80%,59,Y,G14,56.33%,O11,52.81%,O38,25.00%
+321,Maunawili Elementary,11.63%,339,N,,,,,O36,25.01%
+216,Mililani High,10.48%,1536,N,,,,,O35,25.01%
+240,Mililani Ike Elementary,7.33%,386,N,,,,,O39,25.00%
+241,Mililani Mauka Elementary,11.53%,444,N,,,,,O39,25.00%
+238,Mililani Middle,12.55%,828,N,,,,,O32,25.03%
+242,Mililani Uka Elementary,13.62%,691,N,,,,,O19,28.21%
+234,Mililani Waena Elementary,17.99%,667,N,,,,,O39,25.00%
+217,Moanalua Elementary,9.21%,642,N,,,,,O32,25.03%
+218,Moanalua High,10.23%,1877,N,,,,,O39,25.00%
+219,Moanalua Middle,8.44%,990,N,,,,,O30,25.03%
+322,Mokapu Elementary,1.97%,644,N,,,,,O34,25.02%
+220,Mokulele Elementary,0.98%,560,N,,,,,O33,25.02%
+421,Molokai High,51.51%,332,Y,G11,43.22%,O5,55.91%,O4,51.51%
+434,Molokai Middle,61.08%,167,Y,G4,53.05%,O7,55.48%,O14,33.35%
+285,Momilani Elementary,7.84%,563,N,,,,,O26,25.05%
+379,Mountain View Elementary,66.73%,523,Y,G14,56.33%,O2,61.67%,O8,41.63%
+380,Naalehu Elementary,74.14%,464,Y,G14,56.33%,O11,52.81%,O30,25.03%
+261,Nanaikapono Elementary,61.28%,736,Y,G7,54.49%,O3,59.01%,O6,45.32%
+262,Nanakuli Elementary,52.39%,418,Y,G9,60.04%,O9,54.33%,O8,41.63%
+263,Nanakuli High & Intermediate,47.05%,914,Y,G3,47.12%,O23,41.65%,O37,25.00%
+139,Niu Valley Middle,6.62%,701,N,,,,,O12,36.62%
+140,Noelani Elementary,12.27%,617,N,,,,,O23,25.22%
+141,Nuuanu Elementary,7.23%,522,N,,,,,O40,25.00%
+475,Olomana,51.61%,93,Y,G3,47.12%,O1,62.38%,O3,51.57%
+382,Paauilo Elementary & Intermediate,39.79%,191,Y,I-382,39.79%,O15,49.30%,O12,36.62%
+381,Pahoa Elementary,70.66%,426,Y,G10,56.47%,O2,61.67%,O2,59.65%
+383,Pahoa High & Intermediate,62.15%,724,Y,G2,50.77%,O7,55.48%,O12,36.62%
+422,Paia Elementary,35.28%,411,N,,,,,O19,28.21%
+264,Palisades Elementary,22.54%,355,N,,,,,O35,25.01%
+142,Palolo Elementary,76.77%,254,Y,G6,55.93%,O2,61.67%,O25,25.10%
+143,Pauoa Elementary,31.01%,358,N,,,,,O25,25.10%
+265,Pearl City Elementary,21.57%,408,N,,,,,O8,41.63%
+266,Pearl City High,16.32%,1471,N,,,,,O36,25.01%
+267,Pearl City Highlands Elementary,18.71%,529,N,,,,,O35,25.01%
+222,Pearl Harbor Elementary,15.20%,408,N,,,,,O28,25.04%
+223,Pearl Harbor Kai Elementary,3.07%,316,N,,,,,O21,25.34%
+243,Pearl Ridge Elementary,14.04%,457,N,,,,,O29,25.03%
+269,Pohakea Elementary,38.42%,518,N,,,,,O9,39.86%
+433,Pomaikai Elementary School,12.52%,413,N,,,,,O33,25.02%
+126,Prince David Kawananakoa Middle,27.11%,605,N,,,,,O30,25.03%
+128,Prince Jonah Kuhio Elementary,43.56%,202,Y,G2,50.77%,O18,46.83%,O12,36.62%
+131,Princess Miriam K. Likelike Elementary,46.15%,247,Y,G6,55.93%,O25,41.03%,O27,25.05%
+429,Princess Nahienaena Elementary,43.31%,478,N,,,,,O36,25.01%
+104,Princess Ruth Ke'elikolani Middle,61.35%,370,Y,G10,56.47%,O13,51.12%,O40,25.00%
+117,Princess Victoria Kaiulani Elementary,57.92%,240,Y,G6,55.93%,O4,57.92%,O5,49.29%
+436,Pu'u Kukui Elementary,24.55%,770,N,,,,,O16,32.18%
+426,Pukalani Elementary,24.90%,486,N,,,,,O25,25.10%
+314,Puohala Elementary,37.23%,274,Y,G11,43.22%,O12,52.19%,O7,43.91%
+145,Puuhale Elementary,64.47%,273,Y,G5,55.89%,O8,54.60%,O16,32.18%
+112,Queen Kaahumanu Elementary,48.64%,477,Y,I-112,48.64%,O21,45.21%,O39,25.00%
+225,Red Hill Elementary,6.65%,429,N,,,,,O39,25.00%
+148,Robert Louis Stevenson Middle,23.99%,571,N,,,,,O33,25.02%
+147,Royal Elementary,45.64%,298,N,,,,,O24,25.20%
+239,Salt Lake Elementary,24.20%,653,N,,,,,O24,25.20%
+420,Samuel Enoka Kalama Intermediate,27.71%,931,N,,,,,O31,25.03%
+226,Samuel K. Solomon Elementary,1.58%,354,N,,,,,O36,25.01%
+318,Samuel Wilder King Intermediate,30.99%,526,N,,,,,O31,25.03%
+105,Sanford B. Dole Middle,54.83%,549,Y,G7,54.49%,O3,59.01%,O5,49.29%
+325,Sunset Beach Elementary,14.75%,646,N,,,,,O32,25.03%
+146,Theodore Roosevelt High,18.26%,1320,N,,,,,O32,25.03%
+111,Thomas Jefferson Elementary,33.43%,353,N,,,,,O39,25.00%
+229,Wahiawa Elementary,35.57%,461,Y,I-229,35.57%,O14,50.06%,O6,45.32%
+230,Wahiawa Middle,35.84%,692,Y,I-230,35.84%,O21,45.21%,O13,34.41%
+326,Waiahole Elementary,50.43%,117,Y,G12,47.20%,O23,41.65%,O21,25.34%
+384,Waiakea Elementary,43.41%,721,Y,G3,47.12%,O8,54.60%,O5,49.29%
+389,Waiakea High,29.67%,1156,N,,,,,O21,25.34%
+385,Waiakea Intermediate,36.82%,869,N,,,,,O39,25.00%
+386,Waiakeawaena Elementary,34.92%,673,Y,G8,41.69%,O31,34.92%,O37,25.00%
+231,Waialua Elementary,24.40%,459,N,,,,,O33,25.02%
+232,Waialua High & Intermediate,19.14%,559,N,,,,,O30,25.03%
+270,Waianae Elementary,66.51%,436,Y,G9,60.04%,O8,54.60%,O16,32.18%
+272,Waianae High,45.66%,1509,Y,G8,41.69%,O11,52.81%,O10,39.29%
+273,Waianae Intermediate,53.32%,752,Y,G4,53.05%,O22,44.77%,O36,25.01%
+288,Waiau Elementary,26.58%,489,N,,,,,O11,37.73%
+424,Waihee Elementary,34.84%,574,Y,I-424,34.84%,O28,38.91%,O32,25.03%
+290,Waikele Elementary,24.72%,534,N,,,,,O40,25.00%
+150,Waikiki Elementary,10.40%,597,N,,,,,O23,25.22%
+393,Waikoloa School,39.76%,742,Y,G8,41.69%,O26,39.76%,O28,25.04%
+425,Wailuku Elementary,40.25%,554,Y,I-425,40.25%,O13,51.12%,O8,41.63%
+233,Waimalu Elementary,31.96%,316,N,,,,,O39,25.00%
+327,Waimanalo Elementary & Intermediate,54.21%,380,Y,G6,55.93%,O8,54.60%,O6,45.32%
+464,Waimea Canyon Middle,33.12%,477,N,,,,,O15,33.24%
+387,Waimea Elementary,40.62%,480,Y,G7,54.49%,O27,39.52%,O32,25.03%
+462,Waimea High,29.17%,713,N,,,,,O19,28.21%
+274,Waipahu Elementary,53.95%,823,Y,G10,56.47%,O17,48.64%,O39,25.00%
+277,Waipahu High,22.53%,2508,N,,,,,O32,25.03%
+278,Waipahu Intermediate,27.50%,1109,N,,,,,O31,25.03%
+106,Wallace Rider Farrington High,33.71%,2053,N,,,,,O19,28.21%
+138,William McKinley High,32.49%,1228,N,,,,,O12,36.62%
+110,William P. Jarrett Middle,58.25%,285,Y,I-110,58.25%,O1,62.38%,O5,49.29%
+228,William R. Shafter Elementary,1.67%,349,N,,,,,O27,25.05%

@@ -124,7 +124,7 @@ class IntervalDPCEPStrategy(BaseCEPStrategy):
              + s.lunch_served * s.rates.free_lunch_rate for s in schools]
         B = [s.bfast_served * s.rates.paid_breakfast_rate
              + s.lunch_served * s.rates.paid_lunch_rate for s in schools]
-        C = [(s.lunch_served * 0.07 if sfa else 0.0) for s in schools]
+        C = [(s.lunch_served * s.rates.sfa_lunch_bonus if sfa else 0.0) for s in schools]
 
         n = len(schools)
         pe = [0] * (n + 1)

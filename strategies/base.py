@@ -1,8 +1,15 @@
 from abc import ABC,abstractmethod
 from enum import Enum
+import json
+import os
 
 # As of 10.26.2023 this goes to 25% from 40% as a result of FDA rule (7 CFR 245.9(f)(3)(i))
 DEFAULT_ISP_THRESHOLD = 0.25
+FREE_RATE_MULTIPLIER = 1.6
+
+# USDA per-meal rates by school year, shared with the frontend (frontend/src/lib/cep.ts)
+with open(os.path.join(os.path.dirname(__file__),"meal_rates.json")) as f:
+    MEAL_RATES = json.load(f)
 
 # Shortcut to deal with commas in integers from csv
 def i(x):
@@ -14,7 +21,7 @@ def i(x):
         return 0
 
 # Free Rate from CEP Estimator
-# IF(E11*1.6>=1,1,IF(E11<0.4,0,E11*1.6))
+# IF(E11*1.6>=1,1,IF(E11<0.25,0,E11*1.6)), with 0.25 taken from isp_threshold
 def isp_to_free_rate(isp,isp_threshold):
     free_rate = isp * 1.6
     if isp * 1.6 > 1:
@@ -166,7 +173,7 @@ class CEPGroup(object):
                school.lunch_served * school.rates.free_lunch_rate * self.free_rate + \
                school.lunch_served * school.rates.paid_lunch_rate * self.paid_rate
         if self.district.sfa_certified:
-            result += school.lunch_served * 0.07
+            result += school.lunch_served * school.rates.sfa_lunch_bonus
         return round(result,2)
 
     def est_reimbursement(self):
@@ -386,71 +393,26 @@ class AbstractStateFunding(object):
     def get_funding(self,school):
         return 0
 
-# Rates Updated for 2023-2024
-# Based on table in
-# https://www.fns.usda.gov/sites/default/files/resource-files/SY23-24EstimatorCEP.xlsx
+def rate_tier(state):
+    '''Which USDA rate table a state claims under: "ak", "hi" (Hawaii and the territories) or "contiguous".'''
+    state = state.upper()
+    for tier,states in MEAL_RATES["rate_tiers"].items():
+        if state in states:
+            return tier
+    return "contiguous"
+
+# Rates come from strategies/meal_rates.json, keyed by school year
 class CEPRate(object):
-    def __init__(self,state,sfa_certified,hhfka_sixty,severe_need):
-        state = state.upper()
-        ## ALASKA ##
-        if state == "AK":
-            # Lunch
-            if hhfka_sixty == "less":
-                self.free_lunch_rate = 6.90
-                self.paid_lunch_rate = 0.66
-            elif hhfka_sixty == "more":
-                self.free_lunch_rate = 6.92
-                self.paid_lunch_rate = 0.68
-            else:  #max
-                self.free_lunch_rate = 7.14
-                self.paid_lunch_rate = 0.76
-            # Breakfast 
-            if not severe_need:
-                self.free_breakfast_rate = 3.66
-                self.paid_breakfast_rate = 0.58
-            else:
-                self.free_breakfast_rate = 4.39
-                self.paid_breakfast_rate = 0.58
-
-        ## Puerto Rico, Guam, Hawaii, Virgin Islands ##
-        elif state in ("PR","GM","HI","VI"):
-            # Lunch
-            if hhfka_sixty == "less":
-                self.free_lunch_rate = 5.54
-                self.paid_lunch_rate = 0.53
-            elif hhfka_sixty == "more":
-                self.free_lunch_rate = 5.56
-                self.paid_lunch_rate = 0.55
-            else:  #max
-                self.free_lunch_rate = 5.74
-                self.paid_lunch_rate = 0.61
-            # Breakfast 
-            if not severe_need:
-                self.free_breakfast_rate = 2.95
-                self.paid_breakfast_rate = 0.47
-            else:
-                self.free_breakfast_rate = 3.53
-                self.paid_breakfast_rate = 0.47
-
-        ## Contiguous 48 ##
-        else:
-            # Lunch
-            if hhfka_sixty == "less":
-                self.free_lunch_rate = 4.25 
-                self.paid_lunch_rate = 0.40
-            elif hhfka_sixty == "more":
-                self.free_lunch_rate = 4.27 
-                self.paid_lunch_rate = 0.42
-            else:  #max
-                self.free_lunch_rate = 4.42
-                self.paid_lunch_rate = 0.48
-            # Breakfast 
-            if not severe_need:
-                self.free_breakfast_rate = 2.28
-                self.paid_breakfast_rate = 0.38
-            else:
-                self.free_breakfast_rate = 2.73
-                self.paid_breakfast_rate = 0.38
+    def __init__(self,state,sfa_certified,hhfka_sixty,severe_need,school_year=None):
+        year = MEAL_RATES["school_years"][school_year or MEAL_RATES["default_school_year"]]
+        table = year[rate_tier(state)]
+        lunch = table["lunch"][hhfka_sixty if hhfka_sixty in ("less","more") else "max"]
+        breakfast = table["breakfast"]["severe_need" if severe_need else "normal"]
+        self.free_lunch_rate = lunch["free"]
+        self.paid_lunch_rate = lunch["paid"]
+        self.free_breakfast_rate = breakfast["free"]
+        self.paid_breakfast_rate = breakfast["paid"]
+        self.sfa_lunch_bonus = year["sfa_lunch_bonus"]
 
     def as_dict(self):
         return {

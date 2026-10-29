@@ -158,7 +158,7 @@ class ExactCEPStrategy(BaseCEPStrategy):
                     + s.lunch_served * r.paid_lunch_rate * paid_rate
                 )
                 if sfa:
-                    amount += s.lunch_served * 0.07
+                    amount += s.lunch_served * r.sfa_lunch_bonus
                 total += round(amount, 2)
 
             if evaluate_by == "coverage":

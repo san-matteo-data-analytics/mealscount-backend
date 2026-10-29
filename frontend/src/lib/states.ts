@@ -8,9 +8,10 @@
  * require MealsCount to hold district data for that state. So the live list is
  * merged over this baseline rather than replacing it.
  *
- * Guam / American Samoa / the Northern Marianas are deliberately absent:
- * CEPRate in strategies/base.py checks "GM" rather than "GU" and has no branch
- * for AS or MP, so those would silently claim contiguous-48 rates.
+ * American Samoa and the Northern Marianas are deliberately absent: the
+ * rate_tiers in strategies/meal_rates.json have no entry for AS or MP, so they
+ * would silently claim contiguous-48 rates. Guam ("GU") is in the Hawaii tier
+ * there and could be added to this list.
  */
 export interface StateOption {
   /** Two-letter, lowercase — what the optimizer expects as `state_code`. */
