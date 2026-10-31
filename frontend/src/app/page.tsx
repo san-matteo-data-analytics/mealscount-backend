@@ -21,6 +21,7 @@ import ResultsView from "@/components/ResultsView";
 import OptimizeProgress, { type RunProgress } from "@/components/OptimizeProgress";
 import { isAbortError, optimizeDistrict } from "@/lib/api";
 import { EMPTY_SCHOOL, SAMPLE_SETTINGS } from "@/lib/sample";
+import { defaultMaxGroups, isActiveSchool } from "@/lib/cep";
 import type { DistrictSettings, OptimizeEvent, OptimizeResponse, SchoolInput } from "@/lib/types";
 
 /** Mirrors EXACT_MAX_SCHOOLS in server.py -- above this, optimality is not proven. */
@@ -51,9 +52,7 @@ export default function OptimizerPage() {
   // drop the listener so a late resolve cannot set state on an unmounted tree.
   React.useEffect(() => () => abortRef.current?.abort(), []);
 
-  const activeSchools = schools.filter(
-    (s) => s.active !== false && s.school_code && Number(s.total_enrolled) > 0,
-  );
+  const activeSchools = schools.filter(isActiveSchool);
   const hasSchools = schools.length > 0;
 
   // Stable so the memoised SchoolEditor skips re-rendering on unrelated state changes.
@@ -177,6 +176,8 @@ export default function OptimizerPage() {
           onImport={(imported) => {
             setSchools(imported);
             setResult(null);
+            const count = imported.filter(isActiveSchool).length;
+            if (count > 0) setSettings((s) => ({ ...s, max_groups: defaultMaxGroups(count) }));
           }}
           onAddBlank={() =>
             setSchools([{ ...EMPTY_SCHOOL, school_code: "1001", school_name: "New school" }])

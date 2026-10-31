@@ -3,7 +3,7 @@
  * intermediate steps live instead of only the optimizer's final answer.
  * Keep this in sync with `isp_to_free_rate` and `CEPRate` on the Python side.
  */
-import type { HhfkaSixty, Rates } from "./types";
+import type { HhfkaSixty, Rates, SchoolInput } from "./types";
 // USDA per-meal rates by school year, shared with CEPRate on the Python side.
 import MEAL_RATES from "../../../strategies/meal_rates.json";
 
@@ -93,6 +93,16 @@ export function schoolReimbursement(args: {
 }
 
 /** Typical school year length used to annualize the optimizer's daily figure. */
+/** A school the optimizer will actually receive: checked, with a code and students. */
+export function isActiveSchool(s: SchoolInput): boolean {
+  return s.active !== false && !!s.school_code && Number(s.total_enrolled) > 0;
+}
+
+/** Starting "Most groups to allow" after an upload: a third of the schools, rounded down, at least 1. */
+export function defaultMaxGroups(schoolCount: number): number {
+  return Math.max(1, Math.floor(schoolCount / 3));
+}
+
 export const SERVING_DAYS_PER_YEAR = 180;
 
 export const usd = (n: number, digits = 0) =>

@@ -23,7 +23,7 @@ from cep_estimatory import parse_strategy,add_strategies
 # ~4s at 16 schools; raise with care.
 EXACT_MAX_SCHOOLS = int(os.environ.get("EXACT_MAX_SCHOOLS",16))
 
-# How long the opt-in extended search (CPSAT) may run, in minutes. The caller
+# How long the opt-in extended search (Genetic, one run per core) may run, in minutes. The caller
 # picks within these bounds. Past 10 minutes it relies on the streaming
 # endpoint: the frontend proxy's timeout is an idle timeout, which the stream's
 # heartbeats reset, but the blocking endpoint sends nothing until it finishes.
@@ -53,8 +53,9 @@ def default_strategies(school_count,evaluate_by,max_groups,extended_seconds=None
     provably-optimal grouping, handles districts up to EXACT_MAX_SCHOOLS
     rather than 10, and is far cheaper.
 
-    extended_seconds adds CPSAT for that long on districts too large for
-    Exact. Below that Exact already proves the optimum, so it is ignored.
+    extended_seconds adds a second Genetic run after the usual one, for that
+    long and one run per core, on districts too large for Exact. Below that
+    Exact already proves the optimum, so it is ignored.
     '''
     # The cheap heuristics always run: they cost milliseconds and give the user
     # something to compare the recommendation against (OneToOne is the
@@ -83,23 +84,23 @@ def default_strategies(school_count,evaluate_by,max_groups,extended_seconds=None
         strategies.append(
             "NYCMODA?fresh_starts=50&iterations=1000&ngroups=%s&evaluate_by=%s" % (max_groups,evaluate_by))
         strategies.append("GreedyLP")
-    # Genetic and CPSAT warm-start from the best grouping already found, so
-    # they run after everything they can learn from.
+    # Genetic warm-starts from the best grouping already found, so it runs
+    # after everything it can learn from.
     genetic = "Genetic?max_groups=%s&evaluate_by=%s" % (max_groups,evaluate_by)
+    strategies.append(genetic)
     if not extended_seconds:
-        strategies.append(genetic)
         return strategies
-    # Extended search splits its time. The GA gets the first half with its stop
-    # rule off -- left on, it quits once it stalls and the extra time is wasted
-    # -- and CPSAT, warm-started from the GA's answer, gets the second half.
-    # Measured on a 195 school district over 9 minutes, half-and-half beat
-    # giving it all to CPSAT by ~$5-8/day at both 10 and 40 groups, and matched
-    # giving it all to the GA at 10 groups. Keeping CPSAT is what lets the
-    # result be proven optimal, or say how close to optimal it is.
-    ga_seconds = extended_seconds // 2
-    strategies.append(genetic + "&patience=0&generations=0&time_limit=%s" % ga_seconds)
-    strategies.append("CPSAT?time_limit=%s&max_groups=%s&evaluate_by=%s" % (
-        extended_seconds - ga_seconds,max_groups,evaluate_by))
+    # Extended search runs the GA a second time, after the quick run above so
+    # the user sees that answer first and the long run warm-starts from it.
+    # It gets all the extended time, with its stop rule off --
+    # left on, it quits once it stalls and the extra time is wasted -- and one
+    # independent run per core, keeping the best. It used to split the time
+    # with CPSAT, warm-started from the GA's answer, but once the GA was
+    # compiled with Numba CPSAT never beat that answer (San Diego Unified, 194
+    # schools, 10 and 40 groups, with either GA), and its proven ceiling sat
+    # ~12% above it, too loose to say anything. CPSAT stays registered, so
+    # compare_strategies.py can still measure it if that changes.
+    strategies.append(genetic + "&patience=0&generations=0&time_limit=%s&workers=0" % extended_seconds)
     return strategies
 
 

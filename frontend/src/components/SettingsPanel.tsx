@@ -15,7 +15,7 @@ import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { fetchStates } from "@/lib/api";
-import { pct, rateTier, RATE_TIER_LABEL } from "@/lib/cep";
+import { pct, rateTier, RATE_TIER_LABEL, SFA_LUNCH_BONUS } from "@/lib/cep";
 import { mergeStates, US_JURISDICTIONS } from "@/lib/states";
 import type { StateOption } from "@/lib/states";
 import type { DistrictSettings, EvaluateBy, HhfkaSixty } from "@/lib/types";
@@ -247,7 +247,7 @@ export default function SettingsPanel({
             label="School food authority certified"
           />
           <FormHelperText sx={{ mt: -0.5 }}>
-            Adds the performance-based 7¢ per lunch your SFA has earned.
+            Adds the performance-based {Math.round(SFA_LUNCH_BONUS * 100)}¢ per lunch your SFA has earned.
           </FormHelperText>
         </Box>
 
