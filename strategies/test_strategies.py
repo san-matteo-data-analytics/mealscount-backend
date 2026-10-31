@@ -2,6 +2,7 @@ from . import STRATEGIES
 import unittest
 import random
 import time
+from unittest import mock
 from .base import CEPDistrict,CEPSchool,CEPGroup,CEPRate
 from cep_estimatory import parse_strategy
 
@@ -545,3 +546,24 @@ class GeneticStrategyTestCase(unittest.TestCase,CEPTestMixin):
         self.assertLess(elapsed,10)
         placed = sorted(s.code for g in ga.groups for s in g.schools)
         self.assertEqual(placed,sorted(s.code for s in district.schools))
+
+    def test_parallel_runs_never_lose_to_the_single_run(self):
+        '''Worker 0 runs the single-worker seed, so with no deadline cutting
+        runs short the best of several can only match or beat it.'''
+        specs = self.random_specs(random.Random(8),30)
+        single = self.run_strategy(self.mk_district(specs),"Genetic?seed=7&generations=15")
+        district = self.mk_district(specs)
+        parallel = self.run_strategy(district,"Genetic?seed=7&generations=15&workers=3")
+        self.assertGreaterEqual(parallel.reimbursement,single.reimbursement - 0.005)
+        self.assertIn("best of 3 parallel runs",parallel.optimality_basis)
+        placed = sorted(s.code for g in parallel.groups for s in g.schools)
+        self.assertEqual(placed,sorted(s.code for s in district.schools))
+
+    def test_parallel_falls_back_to_one_run_without_processes(self):
+        '''Where processes cannot start (AWS Lambda), it is the single run.'''
+        specs = self.random_specs(random.Random(9),20)
+        single = self.run_strategy(self.mk_district(specs),"Genetic?seed=7&generations=10")
+        with mock.patch("strategies.genetic.ProcessPoolExecutor",side_effect=OSError("no semaphores")):
+            fallback = self.run_strategy(self.mk_district(specs),"Genetic?seed=7&generations=10&workers=4")
+        self.assertEqual(fallback.reimbursement,single.reimbursement)
+        self.assertNotIn("parallel",fallback.optimality_basis)

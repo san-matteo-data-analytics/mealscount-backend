@@ -1,6 +1,10 @@
 import itertools
+import multiprocessing
+import os
 import random
 import time
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
 
 import numpy as np
 from numba import njit
@@ -114,6 +118,15 @@ def _polish_kernel(labels, K, e, en, A, D, threshold, weight, seed):
     return val.sum()
 
 
+def _evolve_in_worker(state, seeds, settings, seed):
+    '''One independent GA run in a worker process, for the workers parameter.
+    Rebuilt from plain per-school constants so nothing unpicklable (the
+    district, other strategies' solver objects) crosses the process boundary.'''
+    ga = GeneticCEPStrategy.__new__(GeneticCEPStrategy)
+    ga.__dict__.update(state)
+    return ga._evolve(seeds, settings, seed)
+
+
 class GeneticCEPStrategy(BaseCEPStrategy):
     '''A grouping genetic algorithm with local search (a "memetic" GA).
 
@@ -139,6 +152,13 @@ class GeneticCEPStrategy(BaseCEPStrategy):
     less than that warm start. With a fixed seed it is deterministic, as long as
     time_limit does not cut the run short.
 
+    One run uses one core. workers > 1 runs that many independent runs at once,
+    each in its own process with seeds seed, seed + 1, ..., all against the same
+    deadline, and keeps the best -- more search in the same wall time, and less
+    riding on one random stream. Worker 0 uses seed itself, so its run is the
+    single-worker run. Where processes cannot be started (AWS Lambda has no
+    shared memory for them) it falls back to that single run.
+
     Parameters:
         population   -- individuals per generation (default 40)
         generations  -- most generations to run (default 200; 0 = no limit)
@@ -146,6 +166,7 @@ class GeneticCEPStrategy(BaseCEPStrategy):
                         (default 40; 0 = never, so only time_limit stops it)
         time_limit   -- seconds, a safety stop (default 120)
         seed         -- random seed (default 42)
+        workers      -- parallel runs (default 1; 0 = one per core)
         evaluate_by  -- "reimbursement" (default) or "coverage"
         max_groups   -- cap on the number of groups (default: one per school)
     '''
@@ -165,7 +186,10 @@ class GeneticCEPStrategy(BaseCEPStrategy):
         generations = int(self.params.get("generations", 200))
         patience = int(self.params.get("patience", 40))
         time_limit = float(self.params.get("time_limit", 120))
-        rnd = random.Random(int(self.params.get("seed", 42)))
+        seed = int(self.params.get("seed", 42))
+        workers = int(self.params.get("workers", 1))
+        if workers <= 0:
+            workers = os.cpu_count() or 1
 
         max_groups = self.params.get("max_groups", None)
         if max_groups in (None, "", "None", "null"):
@@ -197,37 +221,15 @@ class GeneticCEPStrategy(BaseCEPStrategy):
 
         self._prepare(district, schools, evaluate_by)
         self.K = min(max_groups, n)
-        self.rnd = rnd
         start = time.time()
 
         seeds = self._prior_groupings(district, schools)
-        pop = [self._polish(s) for s in seeds]
-        while len(pop) < population:
-            pop.append(self._polish(self._random_partition()))
-        scored = sorted(pop, key=lambda t: t[0], reverse=True)
-
-        best_fit, best = scored[0]
-        stale = 0
-        ran = 0
-        # With no stop rule (patience=0, generations=0) the run lasts exactly
-        # time_limit. Long runs should: at 40 groups on a 195 school district
-        # the GA was still improving well past where patience=40 gave up.
-        for ran in (itertools.count(1) if generations <= 0 else range(1, generations + 1)):
-            elite = scored[:2]
-            children = []
-            while len(children) < population - len(elite):
-                a, b = self._tournament(scored), self._tournament(scored)
-                child = self._crossover(a, b) if rnd.random() < 0.9 else list(a)
-                self._mutate(child)
-                children.append(self._polish(child))
-            scored = sorted(elite + children, key=lambda t: t[0], reverse=True)
-            if scored[0][0] > best_fit + 1e-9:
-                best_fit, best = scored[0]
-                stale = 0
-            else:
-                stale += 1
-            if (patience > 0 and stale >= patience) or time.time() - start > time_limit:
-                break
+        settings = (population, generations, patience, start + time_limit)
+        runs = self._evolve_parallel(seeds, settings, seed, workers) if workers > 1 else []
+        if not runs:
+            runs = [self._evolve(seeds, settings, seed)]
+        # max keeps the first of equals, so ties go to the lowest worker
+        best_fit, best, ran = max(runs, key=lambda run: run[0])
 
         members = {}
         for i, label in enumerate(best):
@@ -238,7 +240,59 @@ class GeneticCEPStrategy(BaseCEPStrategy):
             "best of %i generations of %i in %0.0fs; a genetic algorithm does not prove optimality"
             % (ran, population, time.time() - start)
         )
+        if len(runs) > 1:
+            self.optimality_basis = "best of %i parallel runs, %s" % (len(runs), self.optimality_basis)
         return self.groups
+
+    def _evolve(self, seeds, settings, seed):
+        '''One GA run from the given starting groupings. Returns
+        (fitness, labels, generations run).'''
+        population, generations, patience, deadline = settings
+        self.rnd = random.Random(seed)
+        pop = [self._polish(s) for s in seeds]
+        while len(pop) < population:
+            pop.append(self._polish(self._random_partition()))
+        scored = sorted(pop, key=lambda t: t[0], reverse=True)
+
+        best_fit, best = scored[0]
+        stale = 0
+        ran = 0
+        # With no stop rule (patience=0, generations=0) the run lasts until the
+        # deadline. Long runs should: at 40 groups on a 195 school district the
+        # GA was still improving well past where patience=40 gave up.
+        for ran in (itertools.count(1) if generations <= 0 else range(1, generations + 1)):
+            elite = scored[:2]
+            children = []
+            while len(children) < population - len(elite):
+                a, b = self._tournament(scored), self._tournament(scored)
+                child = self._crossover(a, b) if self.rnd.random() < 0.9 else list(a)
+                self._mutate(child)
+                children.append(self._polish(child))
+            scored = sorted(elite + children, key=lambda t: t[0], reverse=True)
+            if scored[0][0] > best_fit + 1e-9:
+                best_fit, best = scored[0]
+                stale = 0
+            else:
+                stale += 1
+            if (patience > 0 and stale >= patience) or time.time() > deadline:
+                break
+        return best_fit, best, ran
+
+    def _evolve_parallel(self, seeds, settings, seed, workers):
+        '''workers independent runs at once, one process each. Returns their
+        results in worker order, or [] if processes cannot be started here.'''
+        state = {k: getattr(self, k) for k in
+                 ("K", "e", "en", "A", "D", "coverage_weight", "arrays", "isp_threshold")}
+        # spawn, not fork: a forked copy of a threaded server (and of Numba's
+        # runtime) is not safe, and spawn behaves the same on every platform.
+        context = multiprocessing.get_context("spawn")
+        try:
+            with ProcessPoolExecutor(max_workers=workers, mp_context=context) as pool:
+                futures = [pool.submit(_evolve_in_worker, state, seeds, settings, seed + k)
+                           for k in range(workers)]
+                return [f.result() for f in futures]
+        except (OSError, BrokenProcessPool):
+            return []
 
     # -- scoring ---------------------------------------------------------------
 

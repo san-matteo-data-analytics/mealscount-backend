@@ -1,4 +1,5 @@
 /** Plain-language reference content: what each grouping approach does, and what goes into a file. */
+import { SFA_LUNCH_BONUS } from "./cep";
 
 export interface StrategyDoc {
   /** Name the optimizer reports for this approach, used to look up the friendly label. */
@@ -8,7 +9,7 @@ export interface StrategyDoc {
   how: string;
   when: string;
   cost: "trivial" | "cheap" | "moderate" | "expensive";
-  autoRun: "always" | "large districts only" | "on request";
+  autoRun: "always" | "large districts only" | "on request" | "not run";
 }
 
 /** How the optimizer decides whether to run an approach, in words a person can plan around. */
@@ -16,6 +17,7 @@ export const AUTORUN_LABEL: Record<StrategyDoc["autoRun"], string> = {
   always: "tried every time",
   "large districts only": "large districts only",
   "on request": "only when asked for",
+  "not run": "not currently run",
 };
 
 /** How long each approach takes, in words a person can plan around. */
@@ -122,16 +124,16 @@ export const STRATEGIES: StrategyDoc[] = [
     label: "Extended solver search",
     tagline: "Give it more time, and it keeps finding a little more.",
     how: "Hands the whole problem to a mathematical solver that uses every processor core and keeps searching for as long as you allow. It starts from the best grouping the other approaches found and only replaces it with something better, so it can never make the answer worse. If it finishes, the answer is guaranteed best; if time runs out, it reports how far from the best the answer could possibly be.",
-    when: "Large districts where you can wait for a slightly better grouping. Turn on Extended search in the district settings and choose 9 to 30 minutes: the evolved groupings search for the first half of that time without stopping early, and this solver takes the second half, starting from the best grouping found. The gains are usually small, a fraction of a percent, but real.",
+    when: "Kept for comparison, but not currently run. It used to take the second half of an Extended search, but once the evolved groupings became faster it never improved on their answer in our tests, so Extended search now gives all its time to them.",
     cost: "expensive",
-    autoRun: "on request",
+    autoRun: "not run",
   },
   {
     key: "Genetic",
     label: "Evolved groupings",
     tagline: "Breed good groupings together and keep the best offspring.",
     how: "Keeps a population of complete groupings. Each round it combines pairs of good ones, taking whole groups from one and filling in the rest from the other, then tidies each result by moving single schools wherever that earns more. The best grouping always survives to the next round, and it starts from what the other approaches found, so it cannot make the answer worse. The same district always produces the same result.",
-    when: "Large districts, where on every district we measured it matched or beat the guided search, usually in less time. It does not guarantee the best answer, and it does not say how far from the best it might be.",
+    when: "Large districts, where on every district we measured it matched or beat the guided search, usually in less time. It does not guarantee the best answer, and it does not say how far from the best it might be. Turn on Extended search in the district settings to run it a second time, starting from the first run's answer, for 9 to 30 minutes: that run is one independent search per processor core, each from a different random start, for the whole time and keeps the best. Extended results can differ slightly from run to run.",
     cost: "expensive",
     autoRun: "large districts only",
   },
@@ -141,7 +143,9 @@ export const STRATEGIES: StrategyDoc[] = [
 const LABEL_BY_KEY = new Map(STRATEGIES.map((s) => [s.key, s.label]));
 
 export function strategyLabel(name: string): string {
-  const key = name.split("?")[0];
+  const [key, query = ""] = name.split("?");
+  // The extended search is a second, longer Genetic run; server.py marks it with workers.
+  if (key === "Genetic" && new URLSearchParams(query).has("workers")) return "Extended search";
   return LABEL_BY_KEY.get(key) ?? key;
 }
 
@@ -225,7 +229,7 @@ export const DISTRICT_INPUT_FIELDS: FieldDoc[] = [
   },
   {
     label: "School food authority certified",
-    meaning: "Turn on if your SFA is certified for the performance-based extra 7¢ per lunch.",
+    meaning: `Turn on if your SFA is certified for the performance-based extra ${Math.round(SFA_LUNCH_BONUS * 100)}¢ per lunch.`,
   },
   {
     label: "Lunch rate tier",

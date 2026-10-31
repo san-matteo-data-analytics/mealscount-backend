@@ -32,7 +32,7 @@ export interface DistrictSettings {
   state_code: string;
   /** Community Eligibility Provision claiming percentage floor. 0.25 since Oct 2023. */
   isp_threshold: number;
-  /** SFA certified for the performance-based 7 cent lunch add-on. */
+  /** SFA certified for the performance-based lunch add-on (sfa_lunch_bonus in strategies/meal_rates.json). */
   sfa_certified: boolean;
   /** USDA lunch rate tier: under 60% free/reduced ("less"), 60% or more ("more"), or the maximum rate ("max"). */
   hhfka_sixty: HhfkaSixty;
@@ -40,7 +40,7 @@ export interface DistrictSettings {
   max_groups: number;
   /** What "best" means when ranking strategies. */
   evaluate_by: EvaluateBy;
-  /** Also run the CPSAT search. Ignored at 16 schools or fewer, where Exact proves the optimum. */
+  /** Also run the extended Genetic search, one run per core. Ignored at 16 schools or fewer, where Exact proves the optimum. */
   extended_search: boolean;
   /** How long the extended search runs. Whole minutes, 9 to 30; the server clamps it too. */
   extended_search_minutes: number;

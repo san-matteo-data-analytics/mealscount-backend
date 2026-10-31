@@ -313,35 +313,23 @@ How it behaves:
 * **It is not deterministic.** Multi-threaded CP-SAT under a time limit can
   return a slightly different grouping on each run.
 
-It is off by default. The optimizer page has an **Extended search** checkbox
-(unchecked by default); checking it reveals a minutes field (default 9, whole
-minutes from 9 to 30). The request carries `extended_search: true` and
-`extended_search_minutes`. Above 16 schools the API then splits that time:
-`Genetic` runs the first half with its stop rule off (`patience=0`,
-`generations=0`), and `CPSAT`, warm-started from the GA's answer, runs the second
-half. The server clamps the minutes to the same range
-(`EXTENDED_SEARCH_MINUTES_MIN`/`_MAX` in `server.py`), so a hand-written request
-cannot ask for more.
+**It is not currently run by the app.** It used to take the second half of an
+extended search (see `Genetic` below), warm-started from the GA's answer. Once
+the GA was compiled with Numba, `CPSAT` never beat that answer: on San Diego
+Unified (194 schools, modelled meals), at 10 and 40 groups, it returned the GA's
+grouping unchanged after both the Numba GA and the older plain-Python one, and
+its proven ceiling sat about 12% above the answer, too loose to say anything
+useful. Even on Denver before Numba, giving all 9 minutes to the GA edged the
+split at 40 groups:
 
-Why split it. On Denver (195 schools, modelled meals), 9 minutes, 3 seeds each:
-
-| how the 9 minutes were spent | 10 groups | 40 groups |
+| how 9 minutes were spent on Denver (195 schools), 3 seeds | 10 groups | 40 groups |
 | ---------------------------- | --------- | --------- |
-| all to `CPSAT` (the original behaviour) | $138,548.91 | $138,545.75 |
-| **half `Genetic`, half `CPSAT`** | **$138,554.01** | **$138,554.01** |
+| all to `CPSAT` | $138,548.91 | $138,545.75 |
+| half `Genetic`, half `CPSAT` | $138,554.01 | $138,554.01 |
 | all to `Genetic` | $138,554.21 | $138,557.09 |
 
-Giving the GA time only helps with its stop rule off: left on, it quits once it
-stalls. All-GA edges the split at 40 groups, but keeping `CPSAT` is what lets
-an extended run be proven optimal, or say how close to optimal it is.
-
-Runs past 10 minutes depend on the streaming endpoint: the frontend proxy's
-timeout is an idle timeout, which the stream's 5 second heartbeats reset, but
-the blocking `/optimize/` fallback sends nothing until it finishes and will be
-cut off. Run locally with `flask run` there is no other limit. If the API is
-ever set up on a shared internal machine behind gunicorn instead, raise its
-worker timeout (30s by default) to cover the longest run. For runs longer than
-30 minutes, use the command line:
+So extended search now gives all its time to `Genetic`, one run per core.
+`CPSAT` stays registered, so it can still be benchmarked or brought back:
 
     $> python compare_strategies.py data/ca/latest.csv --min-schools 17 --max-schools 60 \
            --strategies NYCMODA --strategies "CPSAT?time_limit=600"
@@ -409,6 +397,46 @@ Every Numba seed beat every Python seed. In a normal run the stop rule ends the
 GA before the difference shows, so there it just finishes sooner; the gain comes
 in extended search, which turns the stop rule off.
 
+### Extended search
+
+Extended search is off by default. The optimizer page has an **Extended search**
+checkbox (unchecked by default); checking it reveals a minutes field (default 9,
+whole minutes from 9 to 30). The request carries `extended_search: true` and
+`extended_search_minutes`. Above 16 schools the API then runs `Genetic` twice:
+the usual quick run first, so its answer appears as it does without extended
+search, then a second run warm-started from it (and everything before it) for
+the whole extended time with its stop rule off (`patience=0`, `generations=0`) and
+`workers=0`: one independent run per core, each with its own seed, all stopping
+at the same deadline, keeping the best. A single run uses one core, so this is
+more search in the same wall time and less riding on one random stream. The
+server clamps the minutes to the same range
+(`EXTENDED_SEARCH_MINUTES_MIN`/`_MAX` in `server.py`), so a hand-written request
+cannot ask for more. It used to split the time with `CPSAT`; see that section
+for why it no longer does.
+
+On San Diego Unified (194 schools, modelled meals), 120 seconds after the cheap
+heuristics, on a 12 core machine:
+
+| | 10 groups | 40 groups |
+| --- | --- | --- |
+| old split: `Genetic` 60s, then `CPSAT` 60s | $176,606.17 | $176,451.82 |
+| `Genetic`, one run, 120s | $176,606.17 | $176,605.13 |
+| **`Genetic`, 12 parallel runs, 120s** | **$176,607.40** | **$176,605.88** |
+
+The parallel runs add only about a dollar a day here, which says the GA is
+already near its ceiling on this district; the larger gain over the old split
+came from giving the GA all the time. Worker processes start with `spawn` and
+share the parent's deadline, so the wall time stays what was asked for (120.3s
+and 120.4s above). Where processes cannot be started (AWS Lambda) it falls back
+to a single run. Parallel runs under a deadline are not deterministic.
+
+Runs past 10 minutes depend on the streaming endpoint: the frontend proxy's
+timeout is an idle timeout, which the stream's 5 second heartbeats reset, but
+the blocking `/optimize/` fallback sends nothing until it finishes and will be
+cut off. Run locally with `flask run` there is no other limit. If the API is
+ever set up on a shared internal machine behind gunicorn instead, raise its
+worker timeout (30s by default) to cover the longest run.
+
 The compiled scorer (`_value`) must round the ISP exactly as Python's `round`
 does, including when E / N falls exactly on a rounding midpoint, and a test
 checks it against `_group_value` on thousands of cases. The first call compiles
@@ -416,8 +444,8 @@ the kernels, which takes a few seconds; the result is cached in `__pycache__`.
 
 Parameters: `population` (default 40), `generations` (200; 0 = no limit),
 `patience` (stop after this many generations without improvement, 40; 0 =
-never), `time_limit` (seconds, 120), `seed` (42), `evaluate_by`
-(`reimbursement` or `coverage`), `max_groups`.
+never), `time_limit` (seconds, 120), `seed` (42), `workers` (parallel runs, 1;
+0 = one per core), `evaluate_by` (`reimbursement` or `coverage`), `max_groups`.
 
 ## How much do the heuristics actually miss?
 

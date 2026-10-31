@@ -25,6 +25,7 @@ import SettingsPanel from "@/components/SettingsPanel";
 import { compareDistrict, isAbortError } from "@/lib/api";
 import { strategyLabel } from "@/lib/content";
 import { EMPTY_SCHOOL, SAMPLE_SCHOOLS, SAMPLE_SETTINGS } from "@/lib/sample";
+import { defaultMaxGroups, isActiveSchool } from "@/lib/cep";
 import type { CompareResponse, CompareSide, DistrictSettings, SchoolInput } from "@/lib/types";
 
 const money = (n: number) =>
@@ -156,9 +157,7 @@ export default function ComparePage() {
   const runnable = schools.length > 0 && !busy;
 
   // Same rule as the optimizer page: no more groups than schools that will be sent.
-  const activeCount = schools.filter(
-    (s) => s.active !== false && s.school_code && Number(s.total_enrolled) > 0,
-  ).length;
+  const activeCount = schools.filter(isActiveSchool).length;
   React.useEffect(() => {
     if (activeCount > 0) {
       setSettings((s) => (s.max_groups > activeCount ? { ...s, max_groups: activeCount } : s));
@@ -209,7 +208,11 @@ export default function ComparePage() {
 
       <Stack spacing={3} sx={{ mb: 4 }}>
         <SchoolImport
-          onImport={(rows) => setSchools(rows)}
+          onImport={(rows) => {
+            setSchools(rows);
+            const count = rows.filter(isActiveSchool).length;
+            if (count > 0) setSettings((s) => ({ ...s, max_groups: defaultMaxGroups(count) }));
+          }}
           onAddBlank={() => setSchools((c) => [...c, { ...EMPTY_SCHOOL }])}
           hasSchools={schools.length > 0}
         />
